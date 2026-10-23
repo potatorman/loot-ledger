@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10131b">
+<meta name="description" content="A private, shared price tracker for your game's shops.">
+<link rel="manifest" href="./manifest.json">
+<title>Loot Ledger — Shared Game Market</title>
+<style>
+:root{color-scheme:dark;--bg:#0c0f16;--panel:#131824;--panel2:#191f2d;--line:#293144;--text:#f3f5fa;--muted:#9ba6bb;--accent:#9e7bff;--accent2:#6d55d9;--green:#57d6a0;--red:#ff7e90;--gold:#f0c36d;--radius:18px;--shadow:0 24px 70px #0005}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 500px at 82% -15%,#292149 0%,transparent 65%),var(--bg);color:var(--text);font:15px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:12px}.mono{font-variant-numeric:tabular-nums}.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:-.04em;font-size:22px}.brand-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(145deg,#b4a0ff,#7759ef);color:white;box-shadow:0 8px 24px #8b6aff35;font-size:21px}.eyebrow{color:#b5a5ff;text-transform:uppercase;font-weight:800;letter-spacing:.15em;font-size:10px}.primary,.secondary,.ghost,.danger{border:1px solid transparent;border-radius:12px;padding:10px 14px;font-weight:750;transition:transform .14s ease,background .14s ease,border-color .14s ease}.primary{background:linear-gradient(135deg,#a18aff,#7658ed);color:white;box-shadow:0 6px 22px #795bf329}.primary:hover{transform:translateY(-1px);background:linear-gradient(135deg,#b09cff,#8468f4)}.secondary{background:#252b3b;color:var(--text);border-color:#343d53}.secondary:hover,.ghost:hover{background:#30384c}.ghost{background:transparent;color:var(--muted);border-color:var(--line)}.danger{background:#3a202b;border-color:#60313d;color:#ffb6c1}.danger:hover{background:#4c2634}.icon-btn{width:34px;height:34px;display:inline-grid;place-items:center;background:transparent;border:1px solid transparent;border-radius:10px;color:var(--muted);font-size:15px}.icon-btn:hover{background:#2a3040;color:white;border-color:#3b455b}.field{display:flex;flex-direction:column;gap:7px;margin:0 0 14px}.field label{font-size:12px;font-weight:750;color:#c7cede}.field input,.field textarea,.field select,.inline-input{width:100%;background:#0f131d;border:1px solid #333c50;color:var(--text);border-radius:11px;padding:12px 13px;outline:none;transition:border-color .15s,box-shadow .15s}.field textarea{min-height:120px;resize:vertical;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}.field input:focus,.field textarea:focus,.field select:focus,.inline-input:focus{border-color:#9a80ff;box-shadow:0 0 0 3px #9276ff21}.field input::placeholder,.field textarea::placeholder{color:#68738a}.row{display:flex;align-items:center;gap:10px}.between{display:flex;align-items:center;justify-content:space-between;gap:12px}.card{background:linear-gradient(160deg,#171d2a,#111620);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.setup-wrap{width:min(1120px,calc(100% - 32px));margin:34px auto 50px}.setup-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:42px}.setup-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:18px;align-items:stretch}.setup-hero{padding:38px 36px;min-height:520px;position:relative;overflow:hidden}.hero-glow{position:absolute;width:310px;height:310px;border-radius:50%;background:#876bff20;filter:blur(10px);right:-100px;top:-100px;pointer-events:none}.setup-hero h1{font-size:clamp(34px,4vw,54px);line-height:1.05;letter-spacing:-.055em;max-width:580px;margin:16px 0}.setup-hero h1 span{color:#aa98ff}.setup-hero p{color:#aeb8cc;max-width:520px;line-height:1.75}.feature-list{display:grid;gap:15px;margin-top:30px}.feature{display:flex;gap:12px;align-items:flex-start}.feature-icon{width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;background:#272340;border:1px solid #403564;border-radius:11px}.feature strong{display:block;font-size:14px;margin:1px 0 3px}.feature span{color:var(--muted);font-size:12px;line-height:1.55}.setup-form{padding:28px}.setup-form h2{font-size:20px;margin:6px 0}.step-row{display:flex;gap:11px;margin:17px 0}.step-num{flex:0 0 24px;height:24px;border-radius:50%;background:#30284d;color:#d3c8ff;display:grid;place-items:center;font-size:11px;font-weight:800}.step-row strong{display:block;font-size:12px;margin:1px 0 3px}.step-row p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}.text-link{color:#b9aaff;text-decoration:none}.text-link:hover{text-decoration:underline}.notice{background:#1b2030;border:1px solid #343d53;color:#b8c3d7;border-radius:12px;padding:12px;font-size:12px;line-height:1.6}.error-text{color:#ff9eac;font-size:12px;margin:8px 0 0;white-space:pre-wrap}.app-header{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222a3a;padding:0 25px;background:#0c0f16c9;backdrop-filter:blur(18px);position:sticky;top:0;z-index:5}.header-right{display:flex;align-items:center;gap:10px}.sync-pill{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid #30394b;border-radius:99px;background:#151b27;color:#c5cddd;font-size:11px}.status-dot{width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 11px #57d6a055}.status-dot.offline{background:var(--gold);box-shadow:none}.player-pill{font-size:12px;color:#c0c8d8;background:#191f2d;padding:8px 11px;border-radius:10px}.workspace{display:grid;grid-template-columns:256px minmax(0,1fr);min-height:calc(100vh - 76px)}.sidebar{background:#10141e;border-right:1px solid #222a3a;padding:22px 14px;display:flex;flex-direction:column;gap:18px}.sidebar-label{padding:0 11px;color:#68748b;font-size:10px;letter-spacing:.14em;font-weight:850;text-transform:uppercase}.shop-list{display:grid;gap:5px}.shop-nav{display:flex;align-items:center;gap:10px;text-align:left;width:100%;border:1px solid transparent;padding:11px;border-radius:12px;background:transparent;color:#aeb8cc;min-width:0}.shop-nav:hover{background:#1a2030;color:white}.shop-nav.active{background:#292342;border-color:#433765;color:#fff}.shop-symbol{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#242a3a;flex:0 0 32px;font-size:16px}.shop-nav.active .shop-symbol{background:#493c79}.shop-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:700;flex:1}.shop-count{font-size:10px;color:#8d98af;min-width:18px;text-align:right}.sidebar-add{width:100%;padding:10px 11px;display:flex;align-items:center;gap:9px;border:1px dashed #3a4359;border-radius:12px;background:transparent;color:#acb6cb;text-align:left}.sidebar-add:hover{border-color:#8e78ed;color:#ded6ff;background:#1c1b2a}.sidebar-bottom{margin-top:auto;border-top:1px solid #273043;padding:17px 4px 0;display:grid;gap:9px}.side-action{background:transparent;border:0;color:#9ba6bb;padding:8px 9px;text-align:left;border-radius:9px;font-size:12px}.side-action:hover{background:#1b2130;color:white}.main{min-width:0;padding:28px clamp(18px,3vw,38px) 48px;max-width:1600px;width:100%;margin:0 auto}.breadcrumb{display:flex;align-items:center;gap:7px;color:#8c98ae;font-size:11px;margin-bottom:18px}.page-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}.page-title-row h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;line-height:1.12;margin:0 0 7px}.page-title-row p{color:var(--muted);font-size:13px;margin:0}.title-actions{display:flex;gap:8px;flex-wrap:wrap}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:25px 0}.stat{padding:16px 17px;background:#131925;border:1px solid #293144;border-radius:15px;min-height:96px}.stat-label{font-size:11px;color:#9ba6bb;display:flex;align-items:center;gap:8px}.stat-number{font-size:25px;font-weight:800;letter-spacing:-.04em;margin-top:7px}.stat-number span{color:#9580fb}.table-card{background:#121722;border:1px solid #293144;border-radius:17px;overflow:hidden}.table-head{display:flex;justify-content:space-between;gap:13px;align-items:center;padding:16px 17px;border-bottom:1px solid #293144;flex-wrap:wrap}.table-title{font-weight:800;font-size:14px}.table-subtitle{font-size:11px;color:#8f9bb0;margin-top:2px}.table-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.search-wrap{position:relative}.search-wrap .search-icon{position:absolute;top:50%;left:11px;transform:translateY(-50%);color:#7e899f;font-size:14px}.search-wrap input{width:min(250px,55vw);background:#0c111a;border:1px solid #30394c;border-radius:10px;color:white;padding:9px 12px 9px 34px;font-size:12px;outline:none}.search-wrap input:focus{border-color:#9b80ff}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:700px}thead{background:#151b27}th{font-size:10px;color:#8793aa;text-transform:uppercase;letter-spacing:.08em;font-weight:800;text-align:left;padding:12px 17px;white-space:nowrap}td{border-top:1px solid #242b3b;padding:14px 17px;vertical-align:middle;font-size:12px}tbody tr:hover{background:#171d2a}.item-main{display:flex;align-items:center;gap:12px;min-width:200px}.item-symbol{width:38px;height:38px;display:grid;place-items:center;background:#24283a;border:1px solid #343950;border-radius:12px;font-size:18px;flex:0 0 38px}.item-name{font-size:13px;font-weight:750;color:#f4f5fb;margin-bottom:3px}.item-notes{color:#8692a8;font-size:10px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.price{font-variant-numeric:tabular-nums;font-size:13px;font-weight:800;white-space:nowrap}.price.buy{color:#f1c878}.price.sell{color:#6be0ae}.update-meta{color:#a9b3c6;font-size:11px;white-space:nowrap}.update-meta span{display:block;color:#6f7b91;font-size:10px;margin-top:3px}.action-cell{white-space:nowrap;text-align:right}.empty-state{padding:56px 20px;text-align:center}.empty-icon{width:58px;height:58px;border-radius:18px;background:#232039;border:1px solid #3d355f;display:grid;place-items:center;font-size:25px;margin:0 auto 15px}.empty-state h3{font-size:17px;margin:0 0 7px}.empty-state p{color:#919db2;font-size:12px;max-width:350px;margin:0 auto 17px;line-height:1.7}.footer-note{color:#647087;font-size:10px;margin:13px 3px}.room-gate-wrap{min-height:calc(100vh - 76px);display:grid;place-items:center;padding:24px}.room-gate{width:min(820px,100%);padding:30px}.room-gate h1{font-size:29px;letter-spacing:-.05em;margin:10px 0}.gate-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:23px}.gate-option{border:1px solid #30394d;border-radius:15px;padding:20px;background:#151b28}.gate-option h3{margin:0 0 7px;font-size:15px}.gate-option p{color:#98a5bb;font-size:12px;line-height:1.6;margin:0 0 17px}.gate-option .field{margin-bottom:10px}.gate-option .field input{padding:10px}.modal-layer{position:fixed;inset:0;z-index:20;background:#05070dcc;display:grid;place-items:center;padding:16px;backdrop-filter:blur(10px)}.modal{background:#171d2a;border:1px solid #39435a;border-radius:18px;width:min(500px,100%);max-height:92vh;overflow:auto;box-shadow:0 28px 90px #0009;padding:23px}.modal h2{font-size:21px;letter-spacing:-.03em;margin:2px 0 8px}.modal p{font-size:12px;color:#9ca8bd;line-height:1.65;margin:0 0 19px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.toast-stack{position:fixed;right:18px;bottom:18px;z-index:40;display:grid;gap:8px;width:min(360px,calc(100vw - 36px))}.toast{background:#20283a;border:1px solid #3c4962;border-radius:13px;box-shadow:var(--shadow);padding:13px 15px;font-size:12px;animation:toastIn .18s ease}.toast.bad{border-color:#70404d}.toast.good{border-color:#315f50}@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.mobile-shop-select{display:none;width:100%;background:#151b28;border:1px solid #343d53;color:#f5f5fc;border-radius:11px;padding:11px}.loading{display:inline-block;width:13px;height:13px;border:2px solid #7062a7;border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:7px}@keyframes spin{to{transform:rotate(360deg)}}.link-box{padding:12px;background:#0d121b;border:1px solid #343d53;border-radius:10px;font-size:11px;word-break:break-all;color:#c9c2ff;margin:10px 0}
+@media(max-width:950px){.setup-grid{grid-template-columns:1fr}.setup-hero{min-height:auto;padding:30px}.setup-hero h1{max-width:700px}.feature-list{grid-template-columns:repeat(2,minmax(0,1fr))}.workspace{grid-template-columns:220px minmax(0,1fr)}.sidebar{padding:18px 10px}.main{padding:23px 18px 40px}.app-header{padding:0 18px}}
+@media(max-width:700px){.setup-wrap{margin-top:20px}.setup-top{margin-bottom:24px}.setup-hero{padding:25px 21px}.setup-form{padding:22px}.feature-list{grid-template-columns:1fr}.app-header{height:68px;padding:0 13px}.brand{font-size:18px;gap:9px}.brand-icon{width:36px;height:36px;border-radius:12px}.header-right{gap:6px}.player-pill{display:none}.sync-pill{font-size:10px;padding:7px 9px}.workspace{display:block;min-height:calc(100vh - 68px)}.sidebar{display:none}.main{padding:21px 13px 35px}.mobile-shop-select{display:block;margin:17px 0 0}.stats{gap:8px;margin:20px 0}.stat{padding:12px 11px;min-height:86px}.stat-label{font-size:10px;line-height:1.35}.stat-number{font-size:21px}.page-title-row{gap:13px}.title-actions{width:100%}.title-actions button{flex:1}.table-head{align-items:flex-start}.table-tools{width:100%}.search-wrap{flex:1}.search-wrap input{width:100%}.table-tools .secondary{font-size:11px;padding:9px}.gate-columns{grid-template-columns:1fr}.room-gate{padding:22px}.room-gate h1{font-size:25px}.header-title-small{display:none}}
+@media(max-width:390px){.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:span 2}.brand{font-size:16px}.sync-pill{max-width:116px;overflow:hidden;white-space:nowrap}.title-actions button{padding:9px 8px;font-size:11px}}
+
+/* Loot Ledger global shop search + Buy/Sell comparison finder */
+.app-market-header{height:auto;min-height:76px;gap:16px;padding:11px 20px;overflow:visible;z-index:40}
+.app-market-header .brand{flex:0 0 auto;white-space:nowrap}
+.top-market-tools{display:flex;align-items:center;gap:9px;flex:1 1 380px;max-width:640px;min-width:180px}
+.market-search-wrap{position:relative;flex:1 1 auto;min-width:0}
+.market-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#b3a4ff;font-size:18px;pointer-events:none;z-index:1}
+.market-global-search{display:block;width:100%;min-width:0;background:#0b1019;border:1px solid #3a3d58;color:#f5f4fc;border-radius:12px;padding:11px 35px 11px 37px;font-size:12px;box-shadow:inset 0 1px 0 #ffffff05;transition:border-color .15s,box-shadow .15s;outline:none}
+.market-global-search:focus{border-color:#9580ed;box-shadow:0 0 0 3px #a48bff1a}
+.market-global-search::placeholder{color:#77849c}
+.market-search-clear{display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);height:25px;width:25px;place-items:center;border:0;border-radius:7px;background:#25233a;color:#bfb5ff;font-size:17px}
+.market-search-clear.show{display:grid}
+.market-mode{width:104px;flex:0 0 104px;background:#171525;border:1px solid #454060;color:#f5f4fc;border-radius:11px;padding:11px 10px;font-size:12px;font-weight:800;cursor:pointer;outline:none}
+.market-mode:focus{border-color:#9b80ff;box-shadow:0 0 0 3px #9276ff21}
+.mode-label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;font-weight:900;color:#8d99b0;white-space:nowrap}
+.autocomplete-menu{display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;min-width:min(360px,calc(100vw - 24px));max-height:350px;overflow:auto;padding:7px;background:#151a27;border:1px solid #3a3d58;border-radius:14px;box-shadow:0 22px 55px #000a;z-index:100}
+.autocomplete-menu.open{display:block}
+.autocomplete-heading{padding:7px 9px 5px;color:#7f8ba2;font-size:9px;letter-spacing:.13em;font-weight:900;text-transform:uppercase}
+.autocomplete-option{width:100%;min-width:0;display:flex;align-items:center;gap:10px;text-align:left;border:1px solid transparent;background:transparent;color:#f1f2fa;padding:9px;border-radius:10px}
+.autocomplete-option:hover,.autocomplete-option.active{background:#28243b;border-color:#4a3f68}
+.autocomplete-item-icon{width:32px;height:32px;display:grid;place-items:center;flex:0 0 32px;border-radius:10px;background:#282e40;font-size:17px}
+.autocomplete-item-copy{min-width:0;flex:1}
+.autocomplete-item-name{display:block;font-weight:800;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.autocomplete-item-meta{display:block;font-size:10px;color:#8592aa;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.autocomplete-enter{font-size:10px;color:#808ba0;border:1px solid #363e52;border-radius:5px;padding:2px 5px;flex:0 0 auto}
+.autocomplete-no-results{padding:14px 10px;color:#929eb3;font-size:11px}
+.market-card{border:1px solid #2a3346;border-radius:17px;background:#121722;overflow:hidden;box-shadow:var(--shadow)}
+.market-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:17px 18px;border-bottom:1px solid #293144}
+.market-title{font-size:14px;font-weight:850}
+.market-sub{color:#8995ab;font-size:11px;margin-top:3px}
+.market-finder{margin:0 0 20px;border-color:#3b3558;background:linear-gradient(155deg,#151827,#121722)}
+.market-finder .market-head{background:linear-gradient(100deg,#1d1b2e,#151a27)}
+.finder-title-row{display:flex;align-items:center;gap:10px}
+.finder-spark{height:30px;width:30px;display:grid;place-items:center;border-radius:9px;background:#302747;color:#d0c4ff;font-size:16px}
+.finder-results{padding:16px 18px;display:grid;gap:17px}
+.finder-empty{padding:22px 16px;text-align:center;border:1px dashed #353951;border-radius:13px;color:#96a2b8;background:#101520}
+.finder-empty .empty-emoji{font-size:25px;margin:0 0 6px}
+.finder-empty strong{display:block;color:#e8e9f3;font-size:13px;margin-bottom:4px}
+.finder-empty p{font-size:11px;margin:0}
+.finder-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;color:#9ba7bd;font-size:10px}
+.finder-summary strong{color:#f1efff;font-size:12px}
+.finder-group{border:1px solid #2a3347;border-radius:15px;overflow:hidden;background:#101520}
+.finder-group-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border-bottom:1px solid #293144;background:#171c2a}
+.finder-item-title{display:flex;align-items:center;gap:10px;min-width:0}
+.finder-item-title .item-symbol{width:34px;height:34px;flex:0 0 34px;font-size:17px;min-width:34px}
+.finder-item-title strong{display:block;font-size:13px;overflow-wrap:anywhere}
+.finder-item-title small{display:block;color:#8592a9;font-size:10px;margin-top:2px}
+.offer-count{font-size:10px;color:#a99bf2;background:#29233e;border:1px solid #403760;padding:5px 8px;border-radius:99px;white-space:nowrap}
+.recommendations{display:grid;gap:8px;padding:12px 13px 13px}
+.recommendation{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px 13px;border-radius:12px;border:1px solid #2b3548;background:#151b28}
+.recommendation.best-buy{border-left:3px solid #67d9a4}
+.recommendation.best-payout{border-left:3px solid #f0be7a}
+.recommendation-kicker{font-size:9px;font-weight:900;letter-spacing:.11em;color:#aab5ca;text-transform:uppercase;margin-bottom:4px}
+.recommendation-shop{font-size:12px;font-weight:850;color:#f1f2fb;overflow-wrap:anywhere}
+.recommendation-detail{font-size:10px;color:#909db3;margin-top:3px;line-height:1.5}
+.recommendation-price{text-align:right;white-space:nowrap;font-size:19px;font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.recommendation-price.buy-price{color:#aeeacb}
+.recommendation-price.sell-price{color:#ffc5a0}
+.recommendation-price small{display:block;font-size:9px;letter-spacing:0;color:#8290a8;font-weight:650}
+.offers-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 14px 7px;color:#aab5ca;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.1em}
+.offer-list{padding:0 13px 13px;display:grid;gap:7px}
+.offer-row{display:grid;grid-template-columns:minmax(160px,1.2fr) minmax(100px,.7fr) minmax(100px,.7fr) auto;align-items:center;gap:12px;padding:10px 11px;border:1px solid #252e40;border-radius:11px;background:#0f141e}
+.offer-row.top-offer{border-color:#4b426b;background:#1a1d2b}
+.offer-shop{display:flex;align-items:center;gap:9px;min-width:0}
+.offer-shop-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#252c3d;font-size:15px;flex:0 0 30px}
+.offer-shop-name{font-size:11px;font-weight:800;color:#e9ebf5;overflow-wrap:anywhere}
+.offer-shop-sub{font-size:9px;color:#7f8ba2;margin-top:2px}
+.offer-price-label{display:block;color:#79869d;font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.offer-price-value{font-size:12px;font-weight:850;font-variant-numeric:tabular-nums;white-space:nowrap}
+.offer-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.offer-badge{display:inline-flex;padding:3px 6px;border-radius:5px;font-size:8px;font-weight:900;letter-spacing:.04em;white-space:nowrap}
+.offer-badge.cheapest{background:#15372d;color:#a8f0ce}
+.offer-badge.payout{background:#3a2d1d;color:#ffd7a2}
+.open-shop-btn{padding:8px 9px;white-space:nowrap;font-size:11px}
+.finder-note{font-size:10px;line-height:1.6;color:#7f8ba2;padding:0 2px}
+.finder-note strong{color:#b4a6ff}
+.market-finder .market-head{padding:16px 18px}
+@media(max-width:1150px){.app-market-header{gap:12px}.app-market-header .brand-icon{width:38px;height:38px}.app-market-header .brand{font-size:20px}.top-market-tools{max-width:520px}.app-market-header .header-right{gap:6px}.app-market-header .player-pill{display:none}}
+@media(max-width:900px){.app-market-header{height:auto;flex-wrap:wrap;gap:10px 14px}.top-market-tools{order:3;flex:1 1 100%;max-width:none}.app-market-header .header-right{margin-left:auto}}
+@media(max-width:820px){.finder-results{padding:12px}.offer-row{grid-template-columns:minmax(0,1fr) minmax(90px,.65fr) minmax(90px,.65fr)}.offer-row .open-shop-btn{grid-column:1/-1;width:100%}}
+@media(max-width:680px){.app-market-header{padding:10px 13px;gap:10px}.app-market-header .brand{flex:0 0 auto}.app-market-header .brand span{font-size:18px}.top-market-tools{order:3;flex-basis:100%;gap:7px}.market-global-search{padding-top:11px;padding-bottom:11px}.mode-label{display:none}.market-mode{width:88px;flex-basis:88px;padding:11px 8px}.app-market-header .sync-pill{font-size:10px;padding:7px 9px}.app-market-header .header-right{margin-left:auto}.app-market-header .header-title-small{display:none}.app-market-header #shareBtn{padding:9px 11px}.finder-results{padding:11px;gap:12px}.finder-group-head{padding:11px}.recommendations{padding:9px;gap:7px}.recommendation{padding:10px;gap:7px}.recommendation-price{font-size:16px}.offer-list{padding:0 9px 9px}.offer-row{grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;padding:10px}.offer-shop{grid-column:1/-1}.offer-row .open-shop-btn{grid-column:1/-1}.offers-head{padding:10px 10px 7px}.offer-count{font-size:9px}.finder-item-title strong{font-size:12px}}
+@media(max-width:430px){.app-market-header .brand{gap:8px}.app-market-header .brand-icon{width:35px;height:35px}.app-market-header .brand span{font-size:16px}.app-market-header .sync-pill{max-width:105px;overflow:hidden}.market-mode{width:78px;flex-basis:78px;font-size:11px}.autocomplete-menu{min-width:0}.recommendation-price{font-size:15px}}
+
+</style>
+</head>
+<body>
+<section id="setupScreen" class="setup-wrap">
+  <div class="setup-top">
+    <div class="brand"><div class="brand-icon">✦</div><span>Loot Ledger</span></div>
+    <div class="eyebrow">Private game market</div>
+  </div>
+  <div class="setup-grid">
+    <div class="card setup-hero">
+      <div class="hero-glow"></div>
+      <div class="eyebrow">Your game · Your prices · One shared ledger</div>
+      <h1>Know every price.<br><span>Even when you're offline.</span></h1>
+      <p>A shared tracker for you and one friend. Keep every shop, buy price, and sell price in one place. Your friend's changes sync to your device when you reconnect.</p>
+      <div class="feature-list">
+        <div class="feature"><div class="feature-icon">🏪</div><div><strong>Separate shops</strong><span>Make a page for every merchant, area, or event.</span></div></div>
+        <div class="feature"><div class="feature-icon">⇄</div><div><strong>Two-way live sync</strong><span>Both of you can update the same market list.</span></div></div>
+        <div class="feature"><div class="feature-icon">☁</div><div><strong>Saved in the cloud</strong><span>Closing the browser doesn't erase your prices.</span></div></div>
+        <div class="feature"><div class="feature-icon">◈</div><div><strong>Offline editing</strong><span>Cached data and queued edits sync when connection returns.</span></div></div>
+      </div>
+    </div>
+    <div class="card setup-form">
+      <div class="eyebrow">One-time setup</div>
+      <h2>Connect your shared database</h2>
+      <p class="muted" style="font-size:12px;line-height:1.7;margin:8px 0 15px">The app needs a free Firebase project to keep the prices shared between devices. After setup, you and your friend use the same web app link.</p>
+      <div class="step-row"><div class="step-num">1</div><div><strong>Create a Firebase project on the free Spark plan</strong><p><a class="text-link" href="https://console.firebase.google.com/" target="_blank" rel="noopener">Open Firebase Console ↗</a>. Do not add a billing account.</p></div></div>
+      <div class="step-row"><div class="step-num">2</div><div><strong>Enable Anonymous sign-in and create Firestore</strong><p>In Authentication, enable Anonymous. Create a Cloud Firestore database.</p></div></div>
+      <div class="step-row"><div class="step-num">3</div><div><strong>Publish the included security rules</strong><p>Follow <code>README.txt</code> inside the downloaded app bundle. Rules keep room data private to its two members.</p></div></div>
+      <div class="field" style="margin-top:20px"><label for="firebaseConfigText">Firebase web app config</label><textarea id="firebaseConfigText" autocomplete="off" spellcheck="false" placeholder="Paste the firebaseConfig object from Project settings → Your apps here..."></textarea><div class="small muted">Paste the normal web app config object only. Never paste a service-account key or password.</div></div>
+      <div class="field"><label for="nicknameInput">Your display name</label><input id="nicknameInput" maxlength="28" placeholder="e.g. PlayerOne" autocomplete="nickname"></div>
+      <button id="connectBtn" class="primary" style="width:100%">Save config & connect →</button>
+      <div id="setupError" class="error-text"></div>
+      <div class="notice" style="margin-top:16px">This app is designed for free-tier usage. Firebase's free quotas can change, and usage over a free limit can temporarily stop database access; billing is not needed for the setup described here.</div>
+    </div>
+  </div>
+</section>
+
+<section id="lobbyScreen" class="hidden">
+  <header class="app-header"><div class="brand"><div class="brand-icon">✦</div><span>Loot Ledger</span></div><div class="header-right"><div id="lobbySync" class="sync-pill"><span class="status-dot"></span><span>Connecting…</span></div><div id="lobbyPlayer" class="player-pill">Player</div></div></header>
+  <div class="room-gate-wrap"><div class="card room-gate">
+    <div class="eyebrow">Workspace setup</div><h1>Make your shared market</h1><p class="muted" style="font-size:13px;line-height:1.75;max-width:630px">Create one private room and send its invite link to your friend. The room has exactly two member slots. Everything you add inside it will be saved to the same cloud database.</p>
+    <div class="gate-columns">
+      <div class="gate-option"><div style="font-size:25px;margin-bottom:12px">✦</div><h3>Create a new shared room</h3><p>Start a fresh market for your game. You become member one and can invite your friend with a link.</p><button id="createRoomBtn" class="primary" style="width:100%">Create shared room</button></div>
+      <div class="gate-option"><div style="font-size:25px;margin-bottom:12px">↗</div><h3>Join your friend's room</h3><p>Normally, just open their invite link. Or paste the room ID and invite key manually.</p><div class="field"><label for="manualRoomId">Room ID</label><input id="manualRoomId" placeholder="Room ID" spellcheck="false"></div><div class="field"><label for="manualInviteKey">Invite key</label><input id="manualInviteKey" placeholder="Invite key" spellcheck="false"></div><button id="joinManualBtn" class="secondary" style="width:100%">Join shared room →</button></div>
+    </div>
+    <div id="lobbyError" class="error-text"></div>
+    <div class="between" style="margin-top:20px;flex-wrap:wrap"><span class="muted small">Using the free Spark plan · No billing account configured by this app</span><button id="backSetupBtn" class="ghost">Firebase settings</button></div>
+  </div></div>
+</section>
+
+<section id="workspaceScreen" class="hidden">
+  <header class="app-header app-market-header">
+    <div class="brand"><div class="brand-icon">✦</div><span>Loot Ledger</span></div>
+    <div class="top-market-tools" role="search" aria-label="Search all shops">
+      <div class="market-search-wrap">
+        <span class="market-search-icon" aria-hidden="true">⌕</span>
+        <input class="market-global-search" id="marketSearchInput" type="search" placeholder="Search every shop…" autocomplete="off" aria-label="Search item names from all shops" aria-autocomplete="list" aria-controls="marketSuggestions" aria-expanded="false">
+        <button class="market-search-clear" id="clearMarketSearchBtn" type="button" aria-label="Clear market search" title="Clear search">×</button>
+        <div class="autocomplete-menu" id="marketSuggestions" role="listbox" aria-label="Item suggestions"></div>
+      </div>
+      <label class="mode-label" for="marketMode">Mode</label>
+      <select class="market-mode" id="marketMode" aria-label="Buy or sell mode"><option value="buy">Buy</option><option value="sell">Sell</option></select>
+    </div>
+    <div class="header-right"><div id="syncPill" class="sync-pill"><span class="status-dot"></span><span>Syncing…</span></div><div id="playerPill" class="player-pill">Player</div><button id="shareBtn" class="primary">↗ <span class="header-title-small">Invite friend</span></button></div>
+  </header>
+  <div class="workspace">
+    <aside class="sidebar">
+      <div class="between" style="padding:0 9px"><div class="sidebar-label" style="padding:0">Your shops</div><button id="sidebarAddShop" class="icon-btn" aria-label="Add shop" title="Add shop">＋</button></div>
+      <div id="shopNavList" class="shop-list"></div>
+      <button id="sidebarNewShop" class="sidebar-add"><span style="font-size:17px">＋</span><span>Add a shop</span></button>
+      <div class="sidebar-bottom"><button id="exportBtn" class="side-action">⇩ &nbsp; Export current shop to CSV</button><button id="changeNameBtn" class="side-action">♙ &nbsp; Change display name</button><button id="roomInfoBtn" class="side-action">♧ &nbsp; Room & invite info</button><button id="switchRoomBtn" class="side-action">↺ &nbsp; Switch / join room</button></div>
+    </aside>
+    <main class="main">
+      <div class="breadcrumb"><span>SHARED MARKET</span><span>›</span><span id="crumbShop">Select a shop</span></div>
+      <div class="page-title-row"><div><h1 id="pageShopTitle">Your game shops</h1><p id="pageSubtitle">A shared source of truth for buy and sell prices.</p></div><div class="title-actions"><button id="addShopMainBtn" class="secondary">＋ Shop</button><button id="manageShopBtn" class="secondary" disabled>⚙ Shop options</button><button id="addItemBtn" class="primary" disabled>＋ Add item</button></div></div>
+      <select id="mobileShopSelect" class="mobile-shop-select" aria-label="Select shop"><option value="">Choose a shop…</option></select>
+      <div class="stats">
+        <div class="stat"><div class="stat-label"><span>▤</span> ITEMS IN THIS SHOP</div><div id="itemStat" class="stat-number">0</div></div>
+        <div class="stat"><div class="stat-label"><span>↗</span> TRACKED SHOPS</div><div id="shopStat" class="stat-number">0</div></div>
+        <div class="stat"><div class="stat-label"><span>⟳</span> LAST CHANGE</div><div id="lastChangeStat" class="stat-number" style="font-size:18px">No edits yet</div></div>
+      </div>
+      <section class="market-card market-finder" id="marketFinderCard">
+        <div class="market-head"><div class="finder-title-row"><div class="finder-spark">⌕</div><div><div class="market-title">Market Finder</div><div class="market-sub">Search in the title bar. Buy finds the cheapest shop; Sell finds the shop paying the most.</div></div></div><span class="offer-count">ALL SHOPS</span></div>
+        <div class="finder-results" id="marketFinderResults" aria-live="polite"><div class="finder-empty"><div class="empty-emoji">⌕</div><strong>Search every shop</strong><p>Type an item name in the top bar to compare prices across your whole market.</p></div></div>
+      </section>
+      <section class="table-card">
+        <div class="table-head"><div><div class="table-title">Shop inventory</div><div id="tableSubtitle" class="table-subtitle">Buy and sell prices at a glance</div></div><div class="table-tools"><div class="search-wrap"><span class="search-icon">⌕</span><input id="searchInput" placeholder="Search items…" aria-label="Search items"></div><button id="clearSearchBtn" class="secondary">Clear</button></div></div>
+        <div id="itemsContent"></div>
+      </section>
+      <div class="footer-note">Changes sync to both members. Offline edits are queued on this browser and sent when it reconnects. If both members edit the same field before syncing, the latest write may win.</div>
+    </main>
+  </div>
+</section>
+
+<div id="modalLayer" class="modal-layer hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="between"><div id="modalEyebrow" class="eyebrow">Edit</div><button id="modalCloseTop" class="icon-btn" aria-label="Close dialog">✕</button></div><div id="modalContent"></div></div></div>
+<div id="toastStack" class="toast-stack" aria-live="polite"></div>
+
+<script type="module">
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache, collection, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const $ = (id) => document.getElementById(id);
+const STORAGE_CONFIG = "lootLedger.firebaseConfig.v1";
+const STORAGE_NAME = "lootLedger.nickname.v1";
+const STORAGE_ROOM = "lootLedger.activeRoom.v1";
+let firebaseApp = null, auth = null, db = null, currentUser = null;
+let currentRoomId = null, currentRoomData = null, currentShopId = null, nickname = localStorage.getItem(STORAGE_NAME) || "Player";
+let shops = [], items = [], unsubscribers = [], fromCache = true, pendingWrites = false, connectionError = "";
+let modalCleanup = null;
+let marketSuggestionIndex = -1;
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>\"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[ch]));
+}
+function showView(which) {
+  $("setupScreen").classList.toggle("hidden", which !== "setup");
+  $("lobbyScreen").classList.toggle("hidden", which !== "lobby");
+  $("workspaceScreen").classList.toggle("hidden", which !== "workspace");
+}
+function showError(id, message) { $(id).textContent = message || ""; }
+function toast(message, kind="") {
+  const element = document.createElement("div"); element.className = "toast " + kind; element.textContent = message;
+  $("toastStack").appendChild(element); setTimeout(() => element.remove(), 4300);
+}
+function randomKey() {
+  const bytes = new Uint8Array(24); crypto.getRandomValues(bytes);
+  return Array.from(bytes, n => n.toString(16).padStart(2,"0")).join("");
+}
+function parseFirebaseConfig(input) {
+  const result = {};
+  const keys = ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId","measurementId"];
+  for (const key of keys) {
+    const match = input.match(new RegExp(key + "\\s*:\\s*[\\\"']([^\\\"']+)[\\\"']"));
+    if (match) result[key] = match[1];
+  }
+  if (!result.apiKey || !result.authDomain || !result.projectId || !result.appId) {
+    throw new Error("I couldn't read the config. Paste the full firebaseConfig object from Firebase → Project settings → Your apps → SDK setup and configuration.");
+  }
+  return result;
+}
+async function waitForAuth(authInstance) {
+  return await new Promise(resolve => {
+    let unsub = () => {};
+    unsub = onAuthStateChanged(authInstance, user => { unsub(); resolve(user); });
+  });
+}
+async function connectWithConfig(config) {
+  showError("setupError", "");
+  if (firebaseApp) {
+    unsubscribeAll();
+    try { await deleteApp(firebaseApp); } catch {}
+    firebaseApp = null; auth = null; db = null; currentUser = null;
+  }
+  $("connectBtn").disabled = true; $("connectBtn").innerHTML = '<span class="loading"></span>Connecting…';
+  try {
+    firebaseApp = initializeApp(config);
+    auth = getAuth(firebaseApp);
+    await setPersistence(auth, browserLocalPersistence);
+    try {
+      db = initializeFirestore(firebaseApp, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+    } catch (cacheError) {
+      console.warn("Persistent cache unavailable; using a compatible local cache", cacheError);
+      try { db = initializeFirestore(firebaseApp, { localCache: memoryLocalCache() }); }
+      catch { db = getFirestore(firebaseApp); }
+    }
+    let user = await waitForAuth(auth);
+    if (!user) user = (await signInAnonymously(auth)).user;
+    currentUser = user;
+    nickname = ($("nicknameInput").value || localStorage.getItem(STORAGE_NAME) || "Player").trim().slice(0,28) || "Player";
+    localStorage.setItem(STORAGE_NAME, nickname);
+    localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
+    updatePlayerLabels();
+    await handleRoomOnStart();
+  } catch (error) {
+    console.error(error);
+    const message = error?.code === "auth/operation-not-allowed" ? "Anonymous sign-in is not enabled yet. In Firebase Console, open Authentication → Sign-in method and enable Anonymous, then try again." :
+      error?.code === "permission-denied" ? "Firestore denied access. Double-check that you published the included firestore.rules and created a Firestore database." :
+      (error?.message || "Could not connect. Check the config and your internet connection.");
+    showError("setupError", message);
+    if (firebaseApp) showError("lobbyError", message);
+    showView("setup");
+  } finally {
+    $("connectBtn").disabled = false; $("connectBtn").textContent = "Save config & connect →";
+  }
+}
+function updatePlayerLabels() {
+  $("lobbyPlayer").textContent = nickname;
+  $("playerPill").textContent = nickname;
+  $("nicknameInput").value = nickname;
+}
+function updateSyncStatus() {
+  const offline = !navigator.onLine;
+  const label = offline ? "Offline · edits queued" : connectionError ? "Reconnect needed" : pendingWrites ? "Saving changes…" : fromCache ? "Loading cached data" : "Synced live";
+  for (const id of ["syncPill", "lobbySync"]) {
+    const node = $(id); if (!node) continue;
+    node.innerHTML = `<span class="status-dot ${offline || connectionError ? "offline" : ""}"></span><span>${escapeHtml(label)}</span>`;
+  }
+}
+window.addEventListener("online", () => { connectionError = ""; updateSyncStatus(); });
+window.addEventListener("offline", updateSyncStatus);
+
+async function handleRoomOnStart() {
+  const params = new URLSearchParams(location.search);
+  const roomFromUrl = params.get("room"); const keyFromUrl = params.get("key");
+  if (roomFromUrl && keyFromUrl) {
+    try { await joinRoom(roomFromUrl, keyFromUrl); removeInviteKeyFromUrl(roomFromUrl); return; }
+    catch (error) { console.warn(error); toast("Could not join from that invite link. You can try it from the join form.", "bad"); }
+  }
+  const saved = roomFromUrl || localStorage.getItem(STORAGE_ROOM);
+  if (saved) {
+    try {
+      const snapshot = await getDoc(doc(db, "rooms", saved));
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.ownerUid === currentUser.uid || data.secondMemberUid === currentUser.uid) { await startRoom(saved, data); return; }
+      }
+    } catch (error) { console.warn("Saved room not available yet", error); }
+    localStorage.removeItem(STORAGE_ROOM);
+  }
+  showView("lobby"); updateSyncStatus();
+}
+function removeInviteKeyFromUrl(roomId) {
+  try { const next = new URL(location.href); next.searchParams.set("room", roomId); next.searchParams.delete("key"); history.replaceState({}, "", next); } catch {}
+}
+async function createRoom() {
+  showError("lobbyError", ""); $("createRoomBtn").disabled = true;
+  try {
+    const roomRef = doc(collection(db, "rooms"));
+    const inviteCode = randomKey();
+    const room = { ownerUid: currentUser.uid, secondMemberUid: null, inviteCode, name: "Our Game Market", createdAt: serverTimestamp() };
+    await setDoc(roomRef, room);
+    await startRoom(roomRef.id, room);
+    toast("Shared room created. Invite your friend with the link.", "good");
+  } catch (error) { showError("lobbyError", error.message || "Could not create room. Check your Firestore rules."); }
+  finally { $("createRoomBtn").disabled = false; }
+}
+async function joinRoom(roomId, inviteCode) {
+  roomId = String(roomId || "").trim(); inviteCode = String(inviteCode || "").trim();
+  if (!roomId || !inviteCode) throw new Error("The invite link needs both a room ID and invite key.");
+  try {
+    await updateDoc(doc(db, "rooms", roomId), { secondMemberUid: currentUser.uid, joinProof: inviteCode, joinedAt: serverTimestamp() });
+  } catch (joinError) {
+    // A member reopening their own link is already in the room; an unrelated account is not.
+    let existing = null;
+    try { existing = await getDoc(doc(db, "rooms", roomId)); } catch {}
+    if (!existing?.exists() || (existing.data().ownerUid !== currentUser.uid && existing.data().secondMemberUid !== currentUser.uid)) {
+      throw new Error("That invite is invalid or this room already has two members. Ask your friend for the current room link.");
+    }
+  }
+  const snapshot = await getDoc(doc(db, "rooms", roomId));
+  if (!snapshot.exists()) throw new Error("Room not found.");
+  const roomData = snapshot.data();
+  if (roomData.ownerUid !== currentUser.uid && roomData.secondMemberUid !== currentUser.uid) throw new Error("This room is full.");
+  await startRoom(roomId, roomData);
+  toast("Connected to the shared market.", "good");
+}
+async function startRoom(roomId, data) {
+  unsubscribeAll(); currentRoomId = roomId; currentRoomData = data;
+  shops = []; items = []; fromCache = true; pendingWrites = false; connectionError = "";
+  localStorage.setItem(STORAGE_ROOM, roomId);
+  currentShopId = localStorage.getItem("lootLedger.shop." + roomId) || null;
+  showView("workspace"); updatePlayerLabels(); renderAll(); updateSyncStatus();
+  let roomPending = false, shopsPending = false, itemsPending = false;
+  const refreshPending = () => { pendingWrites = roomPending || shopsPending || itemsPending; updateSyncStatus(); };
+  unsubscribers.push(onSnapshot(doc(db, "rooms", roomId), { includeMetadataChanges: true }, snapshot => {
+    connectionError = "";
+    if (snapshot.exists()) { currentRoomData = snapshot.data(); renderHeaderRoom(); }
+    fromCache = snapshot.metadata.fromCache; roomPending = snapshot.metadata.hasPendingWrites; refreshPending();
+  }, error => { connectionError = error.message; updateSyncStatus(); toast("Room sync error: " + error.message, "bad"); }));
+  unsubscribers.push(onSnapshot(collection(db, "rooms", roomId, "shops"), { includeMetadataChanges: true }, snapshot => {
+    connectionError = "";
+    shops = snapshot.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => String(a.name||"").localeCompare(String(b.name||"")));
+    fromCache = snapshot.metadata.fromCache; shopsPending = snapshot.metadata.hasPendingWrites;
+    if (!shops.some(s => s.id === currentShopId)) currentShopId = shops[0]?.id || null;
+    renderAll(); refreshPending();
+  }, error => { connectionError = error.message; updateSyncStatus(); toast("Shop sync error: " + error.message, "bad"); }));
+  unsubscribers.push(onSnapshot(collection(db, "rooms", roomId, "items"), { includeMetadataChanges: true }, snapshot => {
+    connectionError = "";
+    items = snapshot.docs.map(d => ({ id:d.id, ...d.data() }));
+    fromCache = snapshot.metadata.fromCache; itemsPending = snapshot.metadata.hasPendingWrites;
+    renderAll(); refreshPending();
+  }, error => { connectionError = error.message; updateSyncStatus(); toast("Item sync error: " + error.message, "bad"); }));
+  renderHeaderRoom();
+}
+function unsubscribeAll() { unsubscribers.forEach(fn => { try{fn();}catch{} }); unsubscribers = []; }
+function renderHeaderRoom() {
+  $("crumbShop").textContent = shops.find(s=>s.id===currentShopId)?.name || "Select a shop";
+}
+function timeAgo(value) {
+  if (!value) return "No edits yet";
+  let date = null;
+  try { date = typeof value.toDate === "function" ? value.toDate() : value instanceof Date ? value : new Date(value); } catch {}
+  if (!date || Number.isNaN(date.getTime())) return "Just now";
+  const seconds = Math.max(0, Math.floor((Date.now()-date.getTime())/1000));
+  if (seconds < 60) return "Just now"; if (seconds < 3600) return Math.floor(seconds/60)+"m ago";
+  if (seconds < 86400) return Math.floor(seconds/3600)+"h ago"; if (seconds < 604800) return Math.floor(seconds/86400)+"d ago";
+  return date.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+}
+function fmtPrice(value) { const str = String(value ?? "").trim(); return str ? str : "—"; }
+function activeShop() { return shops.find(s=>s.id===currentShopId) || null; }
+function currentShopItems() { return items.filter(item => item.shopId === currentShopId).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""))); }
+function renderAll() {
+  renderShopNav(); renderShopSelect(); renderInventory(); renderStats(); renderHeaderRoom(); renderMarketFinder();
+  $("addItemBtn").disabled = !currentShopId;
+  $("manageShopBtn").disabled = !currentShopId;
+  if (document.activeElement === $("marketSearchInput")) renderMarketSuggestions(true);
+  else updateMarketSearchClear();
+}
+function priceNumber(value) {
+  const text = String(value ?? "").trim().replace(/,/g, "");
+  if (!text) return Number.NaN;
+  const match = text.match(/[₺$€£]?\s*([-+]?(?:\d+\.?\d*|\.\d+))\s*([kmb])?/i);
+  if (!match) return Number.NaN;
+  const amount = Number(match[1]);
+  const suffix = (match[2] || "").toLowerCase();
+  const multiplier = suffix === "k" ? 1e3 : suffix === "m" ? 1e6 : suffix === "b" ? 1e9 : 1;
+  return Number.isFinite(amount) ? amount * multiplier : Number.NaN;
+}
+function marketCatalog() {
+  const shopsById = new Map(shops.map(shop => [shop.id, shop]));
+  return items.map(item => {
+    const shop = shopsById.get(item.shopId);
+    return { ...item, shopName: shop?.name || "Unknown shop", shopIcon: shop?.icon || "🏪" };
+  }).filter(item => item.name && shopsById.has(item.shopId));
+}
+function groupedMarketItems(query) {
+  const q = String(query || "").trim().toLowerCase();
+  const catalog = marketCatalog();
+  const seeds = !q ? [] : catalog.filter(item =>
+    String(item.name || "").toLowerCase().includes(q) ||
+    String(item.notes || "").toLowerCase().includes(q) ||
+    String(item.shopName || "").toLowerCase().includes(q)
+  );
+  // If a hit came from one shop or an item's notes, pull in the same item from every shop
+  // so the comparison still covers all available offers, not only the matched document.
+  const matchedNames = new Set(seeds.map(item => String(item.name || "").trim().toLocaleLowerCase()));
+  const matching = !q ? [] : catalog.filter(item => matchedNames.has(String(item.name || "").trim().toLocaleLowerCase()));
+  const groups = new Map();
+  for (const item of matching) {
+    const key = String(item.name || "").trim().toLocaleLowerCase();
+    if (!groups.has(key)) groups.set(key, { name: String(item.name || "Untitled item").trim(), icon: item.icon || "◈", offers: [] });
+    const group = groups.get(key);
+    if (!group.icon || group.icon === "◈") group.icon = item.icon || group.icon;
+    // A shop should only contribute one offer per item name. If duplicate rows exist in one shop, keep each row visible.
+    group.offers.push(item);
+  }
+  return [...groups.values()].sort((a,b) => a.name.localeCompare(b.name));
+}
+function bestOffer(offers, field, direction) {
+  return [...offers].filter(offer => Number.isFinite(priceNumber(offer[field])))
+    .sort((a,b) => direction * (priceNumber(a[field]) - priceNumber(b[field])) || a.shopName.localeCompare(b.shopName))[0] || null;
+}
+function updateMarketSearchClear() {
+  const button = $("clearMarketSearchBtn");
+  if (button) button.classList.toggle("show", Boolean($("marketSearchInput")?.value));
+}
+function hideMarketSuggestions() {
+  const menu = $("marketSuggestions");
+  if (!menu) return;
+  menu.classList.remove("open");
+  $("marketSearchInput")?.setAttribute("aria-expanded", "false");
+  marketSuggestionIndex = -1;
+}
+function renderMarketSuggestions(forceOpen = false) {
+  const input = $("marketSearchInput"), menu = $("marketSuggestions");
+  if (!input || !menu) return;
+  const q = input.value.trim().toLocaleLowerCase();
+  const catalog = marketCatalog();
+  const unique = new Map();
+  for (const item of catalog) {
+    const key = String(item.name || "").trim().toLocaleLowerCase();
+    if (!key) continue;
+    const existing = unique.get(key) || { name: String(item.name).trim(), icon: item.icon || "◈", shops: new Set() };
+    existing.shops.add(item.shopName);
+    if (!existing.icon || existing.icon === "◈") existing.icon = item.icon || existing.icon;
+    unique.set(key, existing);
+  }
+  let list = [...unique.values()];
+  if (q) list = list.filter(x => x.name.toLocaleLowerCase().includes(q));
+  list.sort((a,b) => {
+    if (q) {
+      const ap = a.name.toLocaleLowerCase().startsWith(q) ? 0 : 1;
+      const bp = b.name.toLocaleLowerCase().startsWith(q) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+    }
+    return a.name.localeCompare(b.name);
+  });
+  list = list.slice(0, 8);
+  if (!list.length) {
+    menu.innerHTML = q ? '<div class="autocomplete-no-results">No item names match yet. Add the item to a shop and it will appear here.</div>' : '<div class="autocomplete-heading">Items in all shops</div><div class="autocomplete-no-results">Start typing an item name to compare offers.</div>';
+  } else {
+    menu.innerHTML = `<div class="autocomplete-heading">${q ? "Matching items" : "Popular tracked items"}</div>` + list.map((entry, i) =>
+      `<button type="button" class="autocomplete-option ${i===marketSuggestionIndex?"active":""}" role="option" aria-selected="${i===marketSuggestionIndex?"true":"false"}" data-suggestion-name="${escapeHtml(entry.name)}"><span class="autocomplete-item-icon">${escapeHtml(entry.icon)}</span><span class="autocomplete-item-copy"><span class="autocomplete-item-name">${escapeHtml(entry.name)}</span><span class="autocomplete-item-meta">Listed in ${entry.shops.size} ${entry.shops.size===1?"shop":"shops"}</span></span><span class="autocomplete-enter">Enter</span></button>`
+    ).join("");
+  }
+  updateMarketSearchClear();
+  if (forceOpen && document.activeElement === input) {
+    menu.classList.add("open"); input.setAttribute("aria-expanded", "true");
+  } else if (!forceOpen) {
+    menu.classList.remove("open"); input.setAttribute("aria-expanded", "false");
+  }
+}
+function chooseMarketSuggestion(name) {
+  $("marketSearchInput").value = name;
+  hideMarketSuggestions();
+  renderMarketFinder();
+  updateMarketSearchClear();
+  $("marketFinderCard")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function recommendationMarkup(offer, label, modeClass, field, kind) {
+  if (!offer) return `<div class="recommendation ${modeClass}"><div><div class="recommendation-kicker">${escapeHtml(label)}</div><div class="recommendation-shop">No price entered</div><div class="recommendation-detail">Add this price to a shop's item entry to include it in the ranking.</div></div><div class="recommendation-price ${kind}">—</div></div>`;
+  const price = fmtPrice(offer[field]);
+  const detail = kind === "buy-price" ? "Shop sells · you pay" : "Shop pays · you sell";
+  return `<div class="recommendation ${modeClass}"><div><div class="recommendation-kicker">${escapeHtml(label)}</div><div class="recommendation-shop">${escapeHtml(offer.shopIcon)} ${escapeHtml(offer.shopName)}</div><div class="recommendation-detail">${escapeHtml(detail)} · ${escapeHtml(offer.updatedBy || "No editor recorded")}</div></div><div class="recommendation-price ${kind}">${escapeHtml(price)}<small>coins</small></div></div>`;
+}
+function renderMarketFinder() {
+  const root = $("marketFinderResults");
+  if (!root) return;
+  const query = $("marketSearchInput")?.value.trim() || "";
+  const mode = $("marketMode")?.value || "buy";
+  if (!currentRoomId) {
+    root.innerHTML = `<div class="finder-empty"><div class="empty-emoji">☁</div><strong>Connect your shared market</strong><p>Your cross-shop search will be available after you connect Firebase and open a room.</p></div>`;
+    return;
+  }
+  if (!query) {
+    root.innerHTML = `<div class="finder-empty"><div class="empty-emoji">⌕</div><strong>Search every shop</strong><p>Type an item name in the top bar. Suggestions come from your shops, and the finder compares all matching prices.</p></div>`;
+    return;
+  }
+  const groups = groupedMarketItems(query);
+  if (!groups.length) {
+    root.innerHTML = `<div class="finder-empty"><div class="empty-emoji">⌕</div><strong>No matching item found</strong><p>Try another name, or add this item to one of your shops. Search includes item names, notes, and shop names.</p></div>`;
+    return;
+  }
+  const catalog = marketCatalog();
+  root.innerHTML = `<div class="finder-summary"><span><strong>${groups.length}</strong> matching item ${groups.length===1?"group":"groups"} across <strong>${new Set(groups.flatMap(g=>g.offers.map(o=>o.shopId))).size}</strong> shops</span><span>${mode === "sell" ? "Sorted by highest shop payout" : "Sorted by cheapest shop price"}</span></div>` + groups.map(group => {
+    const offers = group.offers;
+    const cheapest = bestOffer(offers, "buyPrice", 1);
+    const bestPayout = bestOffer(offers, "sellPrice", -1);
+    const first = mode === "sell" ? bestPayout : cheapest;
+    const second = mode === "sell" ? cheapest : bestPayout;
+    const firstLabel = mode === "sell" ? "BEST SHOP TO SELL TO · HIGHEST PAYOUT" : "CHEAPEST SHOP TO BUY FROM";
+    const secondLabel = mode === "sell" ? "CHEAPEST SHOP TO BUY FROM" : "BEST SHOP TO SELL TO · HIGHEST PAYOUT";
+    const sorted = [...offers].sort((a,b) => {
+      const av = priceNumber(mode === "sell" ? a.sellPrice : a.buyPrice);
+      const bv = priceNumber(mode === "sell" ? b.sellPrice : b.buyPrice);
+      const aMissing = !Number.isFinite(av), bMissing = !Number.isFinite(bv);
+      if (aMissing !== bMissing) return aMissing ? 1 : -1;
+      if (av !== bv) return mode === "sell" ? bv - av : av - bv;
+      return a.shopName.localeCompare(b.shopName);
+    });
+    const offersHtml = sorted.map((offer, index) => {
+      const buyIsBest = cheapest && offer.id === cheapest.id;
+      const sellIsBest = bestPayout && offer.id === bestPayout.id;
+      const selectedOffer = mode === "sell" ? sellIsBest : buyIsBest;
+      const badges = `${buyIsBest ? '<span class="offer-badge cheapest">CHEAPEST BUY</span>' : ''}${sellIsBest ? '<span class="offer-badge payout">BEST SELL PAYOUT</span>' : ''}`;
+      return `<div class="offer-row ${selectedOffer ? "top-offer" : ""}"><div class="offer-shop"><span class="offer-shop-icon">${escapeHtml(offer.shopIcon)}</span><div><div class="offer-shop-name">${escapeHtml(offer.shopName)}</div><div class="offer-shop-sub">${escapeHtml(offer.updatedBy || "No editor recorded")} · ${escapeHtml(timeAgo(offer.updatedAt))}</div><div class="offer-badges">${badges}</div></div></div><div class="offer-price-block"><span class="offer-price-label">Shop sells · you pay</span><span class="offer-price-value" style="color:#aeeacb">${escapeHtml(fmtPrice(offer.buyPrice))}</span></div><div class="offer-price-block"><span class="offer-price-label">Shop pays · you sell</span><span class="offer-price-value" style="color:#ffc5a0">${escapeHtml(fmtPrice(offer.sellPrice))}</span></div><button type="button" class="secondary open-shop-btn" data-open-shop="${escapeHtml(offer.shopId)}">View shop ↗</button></div>`;
+    }).join("");
+    return `<section class="finder-group"><div class="finder-group-head"><div class="finder-item-title"><div class="item-symbol">${escapeHtml(group.icon)}</div><div><strong>${escapeHtml(group.name)}</strong><small>Compare this item across all matching shops</small></div></div><span class="offer-count">${offers.length} ${offers.length===1?"shop listing":"shop listings"}</span></div><div class="recommendations">${recommendationMarkup(first,firstLabel,mode === "sell" ? "best-payout" : "best-buy",mode === "sell" ? "sellPrice" : "buyPrice",mode === "sell" ? "sell-price" : "buy-price")}${recommendationMarkup(second,secondLabel,mode === "sell" ? "best-buy" : "best-payout",mode === "sell" ? "buyPrice" : "sellPrice",mode === "sell" ? "buy-price" : "sell-price")}</div><div class="offers-head"><span>Every matching offer</span><span>${mode === "sell" ? "Highest payout first" : "Lowest price first"}</span></div><div class="offer-list">${offersHtml}</div></section>`;
+  }).join("") + `<div class="finder-note"><strong>Price guide:</strong> “Shop sells · you pay” is the cost to buy the item. “Shop pays · you sell” is what you receive when selling it. Rankings are calculated separately, so the cheapest shop and the best-paying shop can be different.</div>`;
+  root.querySelectorAll("[data-open-shop]").forEach(btn => btn.addEventListener("click", () => {
+    selectShop(btn.dataset.openShop);
+    $("inventoryCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
+}
+function renderShopNav() {
+  const nav = $("shopNavList");
+  if (!shops.length) { nav.innerHTML = '<div class="muted small" style="padding:8px 10px;line-height:1.7">No shops yet. Add your first shop to start tracking prices.</div>'; return; }
+  nav.innerHTML = shops.map(shop => `<button class="shop-nav ${shop.id===currentShopId?"active":""}" data-shop-id="${escapeHtml(shop.id)}"><span class="shop-symbol">${escapeHtml(shop.icon||"🏪")}</span><span class="shop-name">${escapeHtml(shop.name||"Unnamed shop")}</span><span class="shop-count">${items.filter(i=>i.shopId===shop.id).length}</span></button>`).join("");
+  nav.querySelectorAll("[data-shop-id]").forEach(btn=>btn.addEventListener("click",()=>selectShop(btn.dataset.shopId)));
+}
+function renderShopSelect() {
+  const select = $("mobileShopSelect");
+  select.innerHTML = '<option value="">Choose a shop…</option>' + shops.map(s=>`<option value="${escapeHtml(s.id)}" ${s.id===currentShopId?"selected":""}>${escapeHtml(s.icon||"🏪")} ${escapeHtml(s.name)}</option>`).join("");
+}
+function selectShop(id) { currentShopId=id; if (currentRoomId) localStorage.setItem("lootLedger.shop."+currentRoomId,id||""); $("searchInput").value=""; renderAll(); }
+function renderStats() {
+  const shop = activeShop(); const shopItems = currentShopItems();
+  $("itemStat").textContent = shopItems.length;
+  $("shopStat").textContent = shops.length;
+  const mostRecent = [...shopItems].sort((a,b)=>timeValue(b.updatedAt)-timeValue(a.updatedAt))[0];
+  $("lastChangeStat").textContent = mostRecent ? timeAgo(mostRecent.updatedAt) : "No edits yet";
+  $("pageShopTitle").textContent = shop ? shop.name : "Your game shops";
+  $("pageSubtitle").textContent = shop ? `${shop.icon||"🏪"} ${shop.name} · Shared price reference` : "Add the shops from your game to start tracking prices.";
+  $("crumbShop").textContent = shop ? shop.name : "No shop selected";
+  $("tableSubtitle").textContent = shop ? `${shopItems.length} item${shopItems.length===1?"":"s"} · Last editor is shown on each row` : "Buy and sell prices at a glance";
+}
+function timeValue(value) { try { return value?.toDate ? value.toDate().getTime() : new Date(value||0).getTime() || 0; } catch { return 0; } }
+function renderInventory() {
+  const content = $("itemsContent"); const shop = activeShop();
+  if (!shop) {
+    content.innerHTML = `<div class="empty-state"><div class="empty-icon">🏪</div><h3>Start with your first shop</h3><p>Use a separate shop for each merchant, island, event, area, or marketplace in your game.</p><button class="primary" id="emptyAddShop">＋ Add your first shop</button></div>`;
+    $("emptyAddShop")?.addEventListener("click", openAddShopDialog); return;
+  }
+  const search = $("searchInput").value.trim().toLowerCase();
+  const visible = currentShopItems().filter(item => !search || [item.name,item.notes,item.buyPrice,item.sellPrice,item.updatedBy].some(v=>String(v||"").toLowerCase().includes(search)));
+  if (!visible.length) {
+    content.innerHTML = `<div class="empty-state"><div class="empty-icon">${search?"⌕":"✦"}</div><h3>${search?"No matching items":"Nothing tracked here yet"}</h3><p>${search?"Try another search term, or clear the filter.":"Add an item and enter the prices you find in-game. You and your friend can update the same row."}</p>${search?'<button class="secondary" id="emptyClearSearch">Clear search</button>':'<button class="primary" id="emptyAddItem">＋ Add first item</button>'}</div>`;
+    $("emptyAddItem")?.addEventListener("click",()=>openItemDialog()); $("emptyClearSearch")?.addEventListener("click",()=>{$("searchInput").value="";renderInventory();}); return;
+  }
+  content.innerHTML = `<div class="table-scroll"><table><thead><tr><th>Item</th><th>Buy price</th><th>Sell price</th><th>Last changed</th><th style="text-align:right">Actions</th></tr></thead><tbody>${visible.map(item=>`<tr><td><div class="item-main"><div class="item-symbol">${escapeHtml(item.icon||"◈")}</div><div><div class="item-name">${escapeHtml(item.name||"Untitled item")}</div><div class="item-notes" title="${escapeHtml(item.notes||"")}">${escapeHtml(item.notes||"No notes")}</div></div></div></td><td><div class="price buy">${escapeHtml(fmtPrice(item.buyPrice))}</div></td><td><div class="price sell">${escapeHtml(fmtPrice(item.sellPrice))}</div></td><td><div class="update-meta">${escapeHtml(item.updatedBy||"Unknown") }<span>${escapeHtml(timeAgo(item.updatedAt))}</span></div></td><td class="action-cell"><button class="icon-btn" data-edit-id="${escapeHtml(item.id)}" title="Edit item" aria-label="Edit item">✎</button><button class="icon-btn" data-delete-id="${escapeHtml(item.id)}" title="Delete item" aria-label="Delete item">⌫</button></td></tr>`).join("")}</tbody></table></div>`;
+  content.querySelectorAll("[data-edit-id]").forEach(btn=>btn.addEventListener("click",()=>openItemDialog(items.find(i=>i.id===btn.dataset.editId))));
+  content.querySelectorAll("[data-delete-id]").forEach(btn=>btn.addEventListener("click",()=>deleteItem(btn.dataset.deleteId)));
+}
+function openModal(eyebrow, html, onCleanup=null) {
+  if (modalCleanup) { try{modalCleanup();}catch{} }
+  modalCleanup = onCleanup; $("modalEyebrow").textContent=eyebrow; $("modalContent").innerHTML=html; $("modalLayer").classList.remove("hidden");
+  setTimeout(()=>$("modalContent").querySelector("input:not([type=hidden]),textarea,select")?.focus(),50);
+}
+function closeModal() { $("modalLayer").classList.add("hidden"); if (modalCleanup) { try{modalCleanup();}catch{} } modalCleanup=null; $("modalContent").innerHTML=""; }
+function openAddShopDialog() {
+  openModal("NEW SHOP", `<h2 id="modalTitle">Add a shop</h2><p>Give each in-game merchant or market their own section.</p><form id="shopForm"><div class="field"><label for="shopName">Shop name</label><input id="shopName" maxlength="55" required placeholder="e.g. Forest Merchant"></div><div class="field"><label for="shopIcon">Icon (emoji or symbol)</label><input id="shopIcon" maxlength="8" value="🏪" placeholder="🏪"></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Create shop</button></div></form>`);
+  $("cancelModal").addEventListener("click",closeModal);
+  $("shopForm").addEventListener("submit",event=>{event.preventDefault();const name=$("shopName").value.trim();if(!name)return;const submit=event.submitter;submit.disabled=true;const ref=doc(collection(db,"rooms",currentRoomId,"shops"));const write=setDoc(ref,{name,icon:$("shopIcon").value.trim()||"🏪",createdBy:nickname,updatedBy:nickname,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});currentShopId=ref.id;localStorage.setItem("lootLedger.shop."+currentRoomId,ref.id);closeModal();toast(navigator.onLine?"Shop added.":"Shop added locally; it will sync when you're back online.","good");write.catch(error=>toast("Shop save failed: "+error.message,"bad"));});
+}
+function openShopManageDialog() {
+  const shop=activeShop(); if(!shop)return;
+  openModal("SHOP OPTIONS", `<h2 id="modalTitle">Manage shop</h2><p>Rename this shared shop or remove it and all its tracked items.</p><form id="manageShopForm"><div class="field"><label for="manageShopName">Shop name</label><input id="manageShopName" maxlength="55" required value="${escapeHtml(shop.name||"")}"></div><div class="field"><label for="manageShopIcon">Icon (emoji or symbol)</label><input id="manageShopIcon" maxlength="8" value="${escapeHtml(shop.icon||"🏪")}"></div><div class="modal-actions" style="justify-content:space-between"><button type="button" class="danger" id="deleteShopBtn">Delete shop</button><div class="row"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Save</button></div></div></form>`);
+  $("cancelModal").addEventListener("click",closeModal);
+  $("deleteShopBtn").addEventListener("click",async()=>{closeModal();await deleteCurrentShop();});
+  $("manageShopForm").addEventListener("submit",event=>{event.preventDefault();const name=$("manageShopName").value.trim();if(!name)return;const write=updateDoc(doc(db,"rooms",currentRoomId,"shops",shop.id),{name,icon:$("manageShopIcon").value.trim()||"🏪",updatedBy:nickname,updatedAt:serverTimestamp()});closeModal();toast(navigator.onLine?"Shop updated.":"Shop updated locally; it will sync when you're back online.","good");write.catch(error=>toast("Shop update failed: "+error.message,"bad"));});
+}
+function openItemDialog(item=null) {
+  if (!currentShopId) { toast("Add a shop first."); return; }
+  const editing=Boolean(item);
+  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Price fields accept numbers or game abbreviations like <b>1.2k</b> or <b>4.5M</b>. Both members see your changes.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy price</label><input id="buyPrice" maxlength="40" placeholder="e.g. 12,500" value="${escapeHtml(item?.buyPrice||"")}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell price</label><input id="sellPrice" maxlength="40" placeholder="e.g. 8,200" value="${escapeHtml(item?.sellPrice||"")}"></div></div><div class="field"><label for="itemIcon">Icon (emoji or symbol)</label><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈"></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
+  $("cancelModal").addEventListener("click",closeModal);
+  $("itemForm").addEventListener("submit",event=>{event.preventDefault();const name=$("itemName").value.trim();if(!name)return;
+    const data={shopId:currentShopId,name,buyPrice:$("buyPrice").value.trim(),sellPrice:$("sellPrice").value.trim(),icon:$("itemIcon").value.trim()||"◈",notes:$("itemNotes").value.trim(),updatedBy:nickname,updatedAt:serverTimestamp()};
+    let write;
+    if(editing){write=updateDoc(doc(db,"rooms",currentRoomId,"items",item.id),data);}
+    else{const ref=doc(collection(db,"rooms",currentRoomId,"items"));write=setDoc(ref,{...data,createdBy:nickname,createdAt:serverTimestamp()});}
+    closeModal();toast(navigator.onLine?(editing?"Item updated.":"Item added."):(editing?"Item updated locally; it will sync when you're back online.":"Item added locally; it will sync when you're back online."),"good");
+    write.catch(error=>toast("Item save failed: "+error.message,"bad"));
+  });
+}
+function deleteItem(id) {
+  const item=items.find(i=>i.id===id); if(!item)return;
+  if(!confirm(`Delete “${item.name}” from ${activeShop()?.name||"this shop"}? This affects the shared list.`))return;
+  deleteDoc(doc(db,"rooms",currentRoomId,"items",id)).then(()=>{}).catch(error=>toast("Item delete failed: "+error.message,"bad"));
+  toast(navigator.onLine?"Item deleted.":"Item removed locally; deletion will sync when you're back online.","good");
+}
+function deleteCurrentShop() {
+  const shop=activeShop(); if(!shop)return;
+  if(!confirm(`Delete “${shop.name}” and all ${items.filter(i=>i.shopId===shop.id).length} of its tracked items from the shared list? This cannot be undone.`))return;
+  const toDelete=items.filter(item=>item.shopId===shop.id);
+  const writes=toDelete.map(item=>deleteDoc(doc(db,"rooms",currentRoomId,"items",item.id)));
+  writes.push(deleteDoc(doc(db,"rooms",currentRoomId,"shops",shop.id)));
+  currentShopId=shops.find(s=>s.id!==shop.id)?.id||null;
+  Promise.all(writes).catch(error=>toast("Shop delete failed: "+error.message,"bad"));
+  toast(navigator.onLine?"Shop and its items deleted.":"Shop and items removed locally; deletions will sync when you're back online.","good");
+}
+function buildInviteUrl() {
+  if (!currentRoomId || !currentRoomData?.inviteCode) throw new Error("Room invite is not loaded yet.");
+  const url=new URL(location.href);url.search="";url.searchParams.set("room",currentRoomId);url.searchParams.set("key",currentRoomData.inviteCode);return url.toString();
+}
+async function shareInvite() {
+  try { const invite=buildInviteUrl();
+    openModal("PRIVATE INVITE", `<h2 id="modalTitle">Invite your friend</h2><p>This link uses the room's one remaining member slot. Send it only to the friend who should share this market with you.</p><div class="link-box" id="inviteLinkText">${escapeHtml(invite)}</div><div class="notice">Room links are private. Once your friend joins, the second member slot is filled and another account cannot join through this link.</div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Close</button><button type="button" class="primary" id="copyInviteBtn">Copy invite link</button></div>`);
+    $("cancelModal").addEventListener("click",closeModal);
+    $("copyInviteBtn").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(invite);toast("Invite link copied.","good");closeModal();}catch{const temp=document.createElement("textarea");temp.value=invite;document.body.appendChild(temp);temp.select();const ok=document.execCommand("copy");temp.remove();if(ok){toast("Invite link copied.","good");closeModal();}else toast("Copy the link manually from the box.","bad");}});
+  } catch(error){toast(error.message,"bad");}
+}
+function exportCSV() {
+  const shop=activeShop();if(!shop){toast("Choose a shop first.");return;}
+  const list=currentShopItems(); const rows=[["Shop","Item","Buy price","Sell price","Icon","Notes","Last changed by"],...list.map(item=>[shop.name,item.name||"",item.buyPrice||"",item.sellPrice||"",item.icon||"",item.notes||"",item.updatedBy||""])];
+  const csv=rows.map(row=>row.map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=(shop.name||"shop").replace(/[^a-z0-9-_]+/gi,"-").toLowerCase()+"-prices.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast("CSV export downloaded.","good");
+}
+function promptChangeName() {
+  openModal("PLAYER PROFILE", `<h2 id="modalTitle">Change display name</h2><p>This name is shown next to the last price edit you made.</p><form id="nameForm"><div class="field"><label for="newNickname">Display name</label><input id="newNickname" maxlength="28" required value="${escapeHtml(nickname)}"></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Save name</button></div></form>`);
+  $("cancelModal").addEventListener("click",closeModal);$("nameForm").addEventListener("submit",event=>{event.preventDefault();nickname=$("newNickname").value.trim().slice(0,28)||"Player";localStorage.setItem(STORAGE_NAME,nickname);updatePlayerLabels();closeModal();toast("Display name updated.","good");});
+}
+function showRoomInfo() {
+  const invite=currentRoomData?.inviteCode ? buildInviteUrl() : "Invite is loading…";
+  openModal("ROOM INFO", `<h2 id="modalTitle">Your shared room</h2><p>Only the room creator and the one accepted friend can read or change its data.</p><div class="field"><label>Room ID</label><input readonly value="${escapeHtml(currentRoomId||"")}"></div><div class="field"><label>Member status</label><input readonly value="${currentRoomData?.secondMemberUid?"Two members · friend joined":"One member · invite still available"}"></div><div class="field"><label>Invite link</label><div class="link-box">${escapeHtml(invite)}</div></div><div class="modal-actions"><button id="cancelModal" class="ghost">Close</button><button id="copyRoomInvite" class="primary">Copy invite</button></div>`);
+  $("cancelModal").addEventListener("click",closeModal);$("copyRoomInvite").addEventListener("click",async()=>{await shareInvite();});
+}
+function switchRoom() {
+  if (!confirm("Switch away from this room on this browser? The cloud room and its data will not be deleted."))return;
+  unsubscribeAll();currentRoomId=null;currentRoomData=null;currentShopId=null;shops=[];items=[];localStorage.removeItem(STORAGE_ROOM);showView("lobby");updateSyncStatus();
+}
+
+$("connectBtn").addEventListener("click",async()=>{
+  try{const config=parseFirebaseConfig($("firebaseConfigText").value);await connectWithConfig(config);}catch(error){showError("setupError",error.message);}
+});
+$("createRoomBtn").addEventListener("click",createRoom);
+$("joinManualBtn").addEventListener("click",async()=>{showError("lobbyError","");$("joinManualBtn").disabled=true;try{await joinRoom($("manualRoomId").value,$("manualInviteKey").value);}catch(error){showError("lobbyError",error.message||"Could not join. Check the room ID and key.");}finally{$("joinManualBtn").disabled=false;}});
+$("backSetupBtn").addEventListener("click",()=>{showView("setup");showError("setupError","");});
+$("sidebarAddShop").addEventListener("click",openAddShopDialog);$("sidebarNewShop").addEventListener("click",openAddShopDialog);$("addShopMainBtn").addEventListener("click",openAddShopDialog);
+$("addItemBtn").addEventListener("click",()=>openItemDialog());$("manageShopBtn").addEventListener("click",openShopManageDialog);$("searchInput").addEventListener("input",renderInventory);$("clearSearchBtn").addEventListener("click",()=>{$("searchInput").value="";renderInventory();});
+$("marketSearchInput").addEventListener("input",()=>{marketSuggestionIndex=-1;renderMarketFinder();renderMarketSuggestions(true);});
+$("marketSearchInput").addEventListener("focus",()=>renderMarketSuggestions(true));
+$("marketSearchInput").addEventListener("keydown",event=>{
+  const menu=$("marketSuggestions"); const options=[...menu.querySelectorAll("[data-suggestion-name]")];
+  if(event.key==="ArrowDown"||event.key==="ArrowUp"){
+    if(!menu.classList.contains("open"))renderMarketSuggestions(true);
+    const fresh=[...menu.querySelectorAll("[data-suggestion-name]")]; if(!fresh.length)return;
+    event.preventDefault(); marketSuggestionIndex=event.key==="ArrowDown"?(marketSuggestionIndex+1)%fresh.length:(marketSuggestionIndex<=0?fresh.length-1:marketSuggestionIndex-1);
+    fresh.forEach((option,i)=>{option.classList.toggle("active",i===marketSuggestionIndex);option.setAttribute("aria-selected",i===marketSuggestionIndex?"true":"false")});
+    fresh[marketSuggestionIndex].scrollIntoView({block:"nearest"});
+  } else if(event.key==="Enter"&&menu.classList.contains("open")&&marketSuggestionIndex>=0&&options[marketSuggestionIndex]){
+    event.preventDefault(); chooseMarketSuggestion(options[marketSuggestionIndex].dataset.suggestionName);
+  } else if(event.key==="Escape"){hideMarketSuggestions();}
+});
+$("marketSuggestions").addEventListener("mousedown",event=>{if(event.target.closest("[data-suggestion-name]"))event.preventDefault();});
+$("marketSuggestions").addEventListener("click",event=>{const option=event.target.closest("[data-suggestion-name]");if(option)chooseMarketSuggestion(option.dataset.suggestionName);});
+$("marketMode").addEventListener("change",renderMarketFinder);
+$("clearMarketSearchBtn").addEventListener("click",()=>{$("marketSearchInput").value="";renderMarketFinder();renderMarketSuggestions(true);$("marketSearchInput").focus();});
+document.addEventListener("click",event=>{if(!event.target.closest(".top-market-tools"))hideMarketSuggestions();});
+$("mobileShopSelect").addEventListener("change",event=>selectShop(event.target.value));
+$("shareBtn").addEventListener("click",shareInvite);$("exportBtn").addEventListener("click",exportCSV);$("changeNameBtn").addEventListener("click",promptChangeName);$("roomInfoBtn").addEventListener("click",showRoomInfo);$("switchRoomBtn").addEventListener("click",switchRoom);
+$("modalCloseTop").addEventListener("click",closeModal);$("modalLayer").addEventListener("click",event=>{if(event.target===$("modalLayer"))closeModal();});window.addEventListener("keydown",event=>{if(event.key==="Escape")closeModal();});
+
+// Pre-fill saved settings, then reconnect this browser to its room if possible.
+nickname = localStorage.getItem(STORAGE_NAME) || nickname;
+$("nicknameInput").value=nickname;
+const savedConfig = localStorage.getItem(STORAGE_CONFIG);
+if (savedConfig) {
+  try { const config=JSON.parse(savedConfig); $("firebaseConfigText").value=Object.entries(config).map(([k,v])=>`${k}: "${v}"`).join(",\n"); await connectWithConfig(config); }
+  catch(error) { console.warn("Saved config could not reconnect",error); showView("setup"); }
+} else { showView("setup"); }
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("./sw.js").catch(error=>console.info("Offline app shell not registered",error));
+}
+</script>
+</body>
+</html>

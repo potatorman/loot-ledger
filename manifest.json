@@ -1,0 +1,10 @@
+{
+  "name": "Loot Ledger — Shared Game Market",
+  "short_name": "Loot Ledger",
+  "description": "A private, shared tracker for game-shop buy and sell prices.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0c0f16",
+  "theme_color": "#10131b",
+  "icons": []
+}
