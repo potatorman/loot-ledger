@@ -395,7 +395,51 @@ function timeAgo(value) {
   if (seconds < 86400) return Math.floor(seconds/3600)+"h ago"; if (seconds < 604800) return Math.floor(seconds/86400)+"d ago";
   return date.toLocaleDateString(undefined,{month:"short",day:"numeric"});
 }
-function fmtPrice(value) { const str = String(value ?? "").trim(); return str ? str : "—"; }
+function isUnavailablePrice(value) {
+  const raw = String(value ?? "").trim().toLocaleLowerCase().replace(/[’]/g, "'").replace(/\s+/g, " ");
+  return ["?", "n/a", "na", "n.a.", "none", "no", "-", "–", "—", "unavailable", "not available", "not available here", "not offered", "not sold", "not sold here", "not bought", "no stock", "not stocked", "doesn't buy", "doesnt buy", "does not buy", "shop doesn't buy", "shop does not buy", "not buying", "doesn't sell", "doesnt sell", "does not sell", "shop doesn't sell", "shop does not sell", "not selling"].includes(raw);
+}
+function compactPrice(number) {
+  if (!Number.isFinite(number)) return "—";
+  const abs = Math.abs(number);
+  if (abs < 1000) return new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(number);
+  const units = [
+    { value: 1e12, suffix: "T" },
+    { value: 1e9, suffix: "B" },
+    { value: 1e6, suffix: "M" },
+    { value: 1e3, suffix: "k" }
+  ];
+  let index = units.findIndex(unit => abs >= unit.value);
+  if (index < 0) index = units.length - 1;
+  let rounded = Number((number / units[index].value).toPrecision(4));
+  if (index > 0 && Math.abs(rounded) >= 1000) {
+    index--;
+    rounded = Number((number / units[index].value).toPrecision(4));
+  }
+  return String(rounded) + units[index].suffix;
+}
+function fmtPrice(value, direction = "unknown") {
+  const str = String(value ?? "").trim();
+  if (!str) return "—";
+  if (isUnavailablePrice(str)) {
+    if (direction === "buy") return "Not sold here";
+    if (direction === "sell") return "Shop doesn't buy";
+    return "Unavailable";
+  }
+  const numeric = priceNumber(str);
+  return Number.isFinite(numeric) ? compactPrice(numeric) : str;
+}
+function fmtPriceInput(value) {
+  const str = String(value ?? "").trim();
+  if (!str) return "";
+  if (isUnavailablePrice(str)) return "?";
+  const numeric = priceNumber(str);
+  return Number.isFinite(numeric) ? compactPrice(numeric) : str;
+}
+function normalizePriceInput(value) {
+  const str = String(value ?? "").trim();
+  return str && isUnavailablePrice(str) ? "?" : str;
+}
 function activeShop() { return shops.find(s=>s.id===currentShopId) || null; }
 function currentShopItems() { return items.filter(item => item.shopId === currentShopId).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""))); }
 function renderAll() {
@@ -406,13 +450,14 @@ function renderAll() {
   else updateMarketSearchClear();
 }
 function priceNumber(value) {
-  const text = String(value ?? "").trim().replace(/,/g, "");
-  if (!text) return Number.NaN;
-  const match = text.match(/[₺$€£]?\s*([-+]?(?:\d+\.?\d*|\.\d+))\s*([kmb])?/i);
+  const original = String(value ?? "").trim();
+  if (!original || isUnavailablePrice(original)) return Number.NaN;
+  const text = original.replace(/,/g, "").replace(/\s+(?:coins?|gold)$/i, "").trim();
+  const match = text.match(/^[₺$€£]?\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+))\s*([kmbt])?\s*$/i);
   if (!match) return Number.NaN;
   const amount = Number(match[1]);
   const suffix = (match[2] || "").toLowerCase();
-  const multiplier = suffix === "k" ? 1e3 : suffix === "m" ? 1e6 : suffix === "b" ? 1e9 : 1;
+  const multiplier = suffix === "k" ? 1e3 : suffix === "m" ? 1e6 : suffix === "b" ? 1e9 : suffix === "t" ? 1e12 : 1;
   return Number.isFinite(amount) ? amount * multiplier : Number.NaN;
 }
 function marketCatalog() {
@@ -506,9 +551,18 @@ function chooseMarketSuggestion(name) {
   updateMarketSearchClear();
   $("marketFinderCard")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
-function recommendationMarkup(offer, label, modeClass, field, kind) {
-  if (!offer) return `<div class="recommendation ${modeClass}"><div><div class="recommendation-kicker">${escapeHtml(label)}</div><div class="recommendation-shop">No price entered</div><div class="recommendation-detail">Add this price to a shop's item entry to include it in the ranking.</div></div><div class="recommendation-price ${kind}">—</div></div>`;
-  const price = fmtPrice(offer[field]);
+function recommendationMarkup(offer, label, modeClass, field, kind, allOffers = []) {
+  if (!offer) {
+    const allUnavailable = allOffers.length > 0 && allOffers.every(entry => isUnavailablePrice(entry[field]));
+    const noneAvailableTitle = allUnavailable
+      ? (field === "buyPrice" ? "No shop sells this item" : "No shop buys this item")
+      : "No available price";
+    const explanation = allUnavailable
+      ? "Every shop marked this transaction as unavailable."
+      : "Blank prices and entries marked ? are left out of this ranking.";
+    return `<div class="recommendation ${modeClass}"><div><div class="recommendation-kicker">${escapeHtml(label)}</div><div class="recommendation-shop">${escapeHtml(noneAvailableTitle)}</div><div class="recommendation-detail">${escapeHtml(explanation)}</div></div><div class="recommendation-price ${kind}">—</div></div>`;
+  }
+  const price = fmtPrice(offer[field], field === "buyPrice" ? "buy" : "sell");
   const detail = kind === "buy-price" ? "Shop sells · you pay" : "Shop pays · you sell";
   return `<div class="recommendation ${modeClass}"><div><div class="recommendation-kicker">${escapeHtml(label)}</div><div class="recommendation-shop">${escapeHtml(offer.shopIcon)} ${escapeHtml(offer.shopName)}</div><div class="recommendation-detail">${escapeHtml(detail)} · ${escapeHtml(offer.updatedBy || "No editor recorded")}</div></div><div class="recommendation-price ${kind}">${escapeHtml(price)}<small>coins</small></div></div>`;
 }
@@ -552,9 +606,9 @@ function renderMarketFinder() {
       const sellIsBest = bestPayout && offer.id === bestPayout.id;
       const selectedOffer = mode === "sell" ? sellIsBest : buyIsBest;
       const badges = `${buyIsBest ? '<span class="offer-badge cheapest">CHEAPEST BUY</span>' : ''}${sellIsBest ? '<span class="offer-badge payout">BEST SELL PAYOUT</span>' : ''}`;
-      return `<div class="offer-row ${selectedOffer ? "top-offer" : ""}"><div class="offer-shop"><span class="offer-shop-icon">${escapeHtml(offer.shopIcon)}</span><div><div class="offer-shop-name">${escapeHtml(offer.shopName)}</div><div class="offer-shop-sub">${escapeHtml(offer.updatedBy || "No editor recorded")} · ${escapeHtml(timeAgo(offer.updatedAt))}</div><div class="offer-badges">${badges}</div></div></div><div class="offer-price-block"><span class="offer-price-label">Shop sells · you pay</span><span class="offer-price-value" style="color:#aeeacb">${escapeHtml(fmtPrice(offer.buyPrice))}</span></div><div class="offer-price-block"><span class="offer-price-label">Shop pays · you sell</span><span class="offer-price-value" style="color:#ffc5a0">${escapeHtml(fmtPrice(offer.sellPrice))}</span></div><button type="button" class="secondary open-shop-btn" data-open-shop="${escapeHtml(offer.shopId)}">View shop ↗</button></div>`;
+      return `<div class="offer-row ${selectedOffer ? "top-offer" : ""}"><div class="offer-shop"><span class="offer-shop-icon">${escapeHtml(offer.shopIcon)}</span><div><div class="offer-shop-name">${escapeHtml(offer.shopName)}</div><div class="offer-shop-sub">${escapeHtml(offer.updatedBy || "No editor recorded")} · ${escapeHtml(timeAgo(offer.updatedAt))}</div><div class="offer-badges">${badges}</div></div></div><div class="offer-price-block"><span class="offer-price-label">Shop sells · you pay</span><span class="offer-price-value" style="color:#aeeacb">${escapeHtml(fmtPrice(offer.buyPrice, "buy"))}</span></div><div class="offer-price-block"><span class="offer-price-label">Shop pays · you sell</span><span class="offer-price-value" style="color:#ffc5a0">${escapeHtml(fmtPrice(offer.sellPrice, "sell"))}</span></div><button type="button" class="secondary open-shop-btn" data-open-shop="${escapeHtml(offer.shopId)}">View shop ↗</button></div>`;
     }).join("");
-    return `<section class="finder-group"><div class="finder-group-head"><div class="finder-item-title"><div class="item-symbol">${escapeHtml(group.icon)}</div><div><strong>${escapeHtml(group.name)}</strong><small>Compare this item across all matching shops</small></div></div><span class="offer-count">${offers.length} ${offers.length===1?"shop listing":"shop listings"}</span></div><div class="recommendations">${recommendationMarkup(first,firstLabel,mode === "sell" ? "best-payout" : "best-buy",mode === "sell" ? "sellPrice" : "buyPrice",mode === "sell" ? "sell-price" : "buy-price")}${recommendationMarkup(second,secondLabel,mode === "sell" ? "best-buy" : "best-payout",mode === "sell" ? "buyPrice" : "sellPrice",mode === "sell" ? "buy-price" : "sell-price")}</div><div class="offers-head"><span>Every matching offer</span><span>${mode === "sell" ? "Highest payout first" : "Lowest price first"}</span></div><div class="offer-list">${offersHtml}</div></section>`;
+    return `<section class="finder-group"><div class="finder-group-head"><div class="finder-item-title"><div class="item-symbol">${escapeHtml(group.icon)}</div><div><strong>${escapeHtml(group.name)}</strong><small>Compare this item across all matching shops</small></div></div><span class="offer-count">${offers.length} ${offers.length===1?"shop listing":"shop listings"}</span></div><div class="recommendations">${recommendationMarkup(first,firstLabel,mode === "sell" ? "best-payout" : "best-buy",mode === "sell" ? "sellPrice" : "buyPrice",mode === "sell" ? "sell-price" : "buy-price",offers)}${recommendationMarkup(second,secondLabel,mode === "sell" ? "best-buy" : "best-payout",mode === "sell" ? "buyPrice" : "sellPrice",mode === "sell" ? "buy-price" : "sell-price",offers)}</div><div class="offers-head"><span>Every matching offer</span><span>${mode === "sell" ? "Highest payout first" : "Lowest price first"}</span></div><div class="offer-list">${offersHtml}</div></section>`;
   }).join("") + `<div class="finder-note"><strong>Price guide:</strong> “Shop sells · you pay” is the cost to buy the item. “Shop pays · you sell” is what you receive when selling it. Rankings are calculated separately, so the cheapest shop and the best-paying shop can be different.</div>`;
   root.querySelectorAll("[data-open-shop]").forEach(btn => btn.addEventListener("click", () => {
     selectShop(btn.dataset.openShop);
@@ -596,7 +650,7 @@ function renderInventory() {
     content.innerHTML = `<div class="empty-state"><div class="empty-icon">${search?"⌕":"✦"}</div><h3>${search?"No matching items":"Nothing tracked here yet"}</h3><p>${search?"Try another search term, or clear the filter.":"Add an item and enter the prices you find in-game. You and your friend can update the same row."}</p>${search?'<button class="secondary" id="emptyClearSearch">Clear search</button>':'<button class="primary" id="emptyAddItem">＋ Add first item</button>'}</div>`;
     $("emptyAddItem")?.addEventListener("click",()=>openItemDialog()); $("emptyClearSearch")?.addEventListener("click",()=>{$("searchInput").value="";renderInventory();}); return;
   }
-  content.innerHTML = `<div class="table-scroll"><table><thead><tr><th>Item</th><th>Buy price</th><th>Sell price</th><th>Last changed</th><th style="text-align:right">Actions</th></tr></thead><tbody>${visible.map(item=>`<tr><td><div class="item-main"><div class="item-symbol">${escapeHtml(item.icon||"◈")}</div><div><div class="item-name">${escapeHtml(item.name||"Untitled item")}</div><div class="item-notes" title="${escapeHtml(item.notes||"")}">${escapeHtml(item.notes||"No notes")}</div></div></div></td><td><div class="price buy">${escapeHtml(fmtPrice(item.buyPrice))}</div></td><td><div class="price sell">${escapeHtml(fmtPrice(item.sellPrice))}</div></td><td><div class="update-meta">${escapeHtml(item.updatedBy||"Unknown") }<span>${escapeHtml(timeAgo(item.updatedAt))}</span></div></td><td class="action-cell"><button class="icon-btn" data-edit-id="${escapeHtml(item.id)}" title="Edit item" aria-label="Edit item">✎</button><button class="icon-btn" data-delete-id="${escapeHtml(item.id)}" title="Delete item" aria-label="Delete item">⌫</button></td></tr>`).join("")}</tbody></table></div>`;
+  content.innerHTML = `<div class="table-scroll"><table><thead><tr><th>Item</th><th>Buy from shop · you pay</th><th>Sell to shop · shop pays you</th><th>Last changed</th><th style="text-align:right">Actions</th></tr></thead><tbody>${visible.map(item=>`<tr><td><div class="item-main"><div class="item-symbol">${escapeHtml(item.icon||"◈")}</div><div><div class="item-name">${escapeHtml(item.name||"Untitled item")}</div><div class="item-notes" title="${escapeHtml(item.notes||"")}">${escapeHtml(item.notes||"No notes")}</div></div></div></td><td><div class="price buy">${escapeHtml(fmtPrice(item.buyPrice, "buy"))}</div></td><td><div class="price sell">${escapeHtml(fmtPrice(item.sellPrice, "sell"))}</div></td><td><div class="update-meta">${escapeHtml(item.updatedBy||"Unknown") }<span>${escapeHtml(timeAgo(item.updatedAt))}</span></div></td><td class="action-cell"><button class="icon-btn" data-edit-id="${escapeHtml(item.id)}" title="Edit item" aria-label="Edit item">✎</button><button class="icon-btn" data-delete-id="${escapeHtml(item.id)}" title="Delete item" aria-label="Delete item">⌫</button></td></tr>`).join("")}</tbody></table></div>`;
   content.querySelectorAll("[data-edit-id]").forEach(btn=>btn.addEventListener("click",()=>openItemDialog(items.find(i=>i.id===btn.dataset.editId))));
   content.querySelectorAll("[data-delete-id]").forEach(btn=>btn.addEventListener("click",()=>deleteItem(btn.dataset.deleteId)));
 }
@@ -621,10 +675,10 @@ function openShopManageDialog() {
 function openItemDialog(item=null) {
   if (!currentShopId) { toast("Add a shop first."); return; }
   const editing=Boolean(item);
-  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Price fields accept numbers or game abbreviations like <b>1.2k</b> or <b>4.5M</b>. Both members see your changes.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy price</label><input id="buyPrice" maxlength="40" placeholder="e.g. 12,500" value="${escapeHtml(item?.buyPrice||"")}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell price</label><input id="sellPrice" maxlength="40" placeholder="e.g. 8,200" value="${escapeHtml(item?.sellPrice||"")}"></div></div><div class="field"><label for="itemIcon">Icon (emoji or symbol)</label><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈"></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
+  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Enter <b>500k</b>, <b>1.2m</b>, or a full number. Use <b>?</b>, <b>N/A</b>, or <b>-</b> if this shop does not offer that transaction. Leave blank if you have not checked yet.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy from shop · what you pay</label><input id="buyPrice" maxlength="40" placeholder="e.g. 500k or ? if not sold here" value="${escapeHtml(fmtPriceInput(item?.buyPrice))}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell to shop · what they pay you</label><input id="sellPrice" maxlength="40" placeholder="e.g. 500k or ? if they don’t buy it" value="${escapeHtml(fmtPriceInput(item?.sellPrice))}"></div></div><div class="field"><label for="itemIcon">Icon (emoji or symbol)</label><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈"></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
   $("cancelModal").addEventListener("click",closeModal);
   $("itemForm").addEventListener("submit",event=>{event.preventDefault();const name=$("itemName").value.trim();if(!name)return;
-    const data={shopId:currentShopId,name,buyPrice:$("buyPrice").value.trim(),sellPrice:$("sellPrice").value.trim(),icon:$("itemIcon").value.trim()||"◈",notes:$("itemNotes").value.trim(),updatedBy:nickname,updatedAt:serverTimestamp()};
+    const data={shopId:currentShopId,name,buyPrice:normalizePriceInput($("buyPrice").value),sellPrice:normalizePriceInput($("sellPrice").value),icon:$("itemIcon").value.trim()||"◈",notes:$("itemNotes").value.trim(),updatedBy:nickname,updatedAt:serverTimestamp()};
     let write;
     if(editing){write=updateDoc(doc(db,"rooms",currentRoomId,"items",item.id),data);}
     else{const ref=doc(collection(db,"rooms",currentRoomId,"items"));write=setDoc(ref,{...data,createdBy:nickname,createdAt:serverTimestamp()});}
@@ -661,7 +715,7 @@ async function shareInvite() {
 }
 function exportCSV() {
   const shop=activeShop();if(!shop){toast("Choose a shop first.");return;}
-  const list=currentShopItems(); const rows=[["Shop","Item","Buy price","Sell price","Icon","Notes","Last changed by"],...list.map(item=>[shop.name,item.name||"",item.buyPrice||"",item.sellPrice||"",item.icon||"",item.notes||"",item.updatedBy||""])];
+  const list=currentShopItems(); const rows=[["Shop","Item","Buy from shop (you pay)","Sell to shop (shop pays you)","Icon","Notes","Last changed by"],...list.map(item=>[shop.name,item.name||"",fmtPriceInput(item.buyPrice),fmtPriceInput(item.sellPrice),item.icon||"",item.notes||"",item.updatedBy||""])];
   const csv=rows.map(row=>row.map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(",")).join("\r\n");
   const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=(shop.name||"shop").replace(/[^a-z0-9-_]+/gi,"-").toLowerCase()+"-prices.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast("CSV export downloaded.","good");
 }
