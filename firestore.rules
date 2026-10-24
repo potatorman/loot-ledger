@@ -17,31 +17,48 @@ service cloud.firestore {
     }
 
     match /rooms/{roomId} {
-      // The room creator is member one; the random invite key is 192 bits.
+      // New rooms have a room name, a random invite key, and a one-way password hash.
       allow create: if signedIn()
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.secondMemberUid == null
         && request.resource.data.inviteCode is string
         && request.resource.data.inviteCode.size() >= 32
-        && request.resource.data.name is string;
+        && request.resource.data.roomPasswordHash is string
+        && request.resource.data.roomPasswordHash.size() == 64
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80;
 
       allow get: if signedIn() &&
         (resource.data.ownerUid == request.auth.uid || resource.data.secondMemberUid == request.auth.uid);
       allow list: if false;
 
       allow update: if signedIn() && (
-        // A friend can claim the empty second slot only with the current invite key.
+        // A friend can claim the empty second slot using either the room password,
+        // or the private invite key plus the room password (for invite links).
         (
           resource.data.secondMemberUid == null
           && request.auth.uid != resource.data.ownerUid
           && request.resource.data.secondMemberUid == request.auth.uid
-          && request.resource.data.joinProof == resource.data.inviteCode
           && request.resource.data.ownerUid == resource.data.ownerUid
           && request.resource.data.inviteCode == resource.data.inviteCode
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['secondMemberUid', 'joinProof', 'joinedAt'])
+          && (
+            // Password-only joining: the password hash is the join proof.
+            (resource.data.roomPasswordHash is string
+              && request.resource.data.joinProof == resource.data.roomPasswordHash)
+            ||
+            // Invite-link joining for current password-protected rooms.
+            (resource.data.roomPasswordHash is string
+              && request.resource.data.joinProof == resource.data.inviteCode
+              && request.resource.data.passwordProof == resource.data.roomPasswordHash)
+            ||
+            // Backwards compatibility for older rooms created before room passwords existed.
+            (!(resource.data.keys().hasAny(['roomPasswordHash']))
+              && request.resource.data.joinProof == resource.data.inviteCode)
+          )
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['secondMemberUid', 'joinProof', 'passwordProof', 'joinedAt'])
         ) ||
-        // Only the owner can kick the second member. The invite key must rotate so
-        // a kicked person cannot use the old invite link to rejoin.
+        // Only the owner can kick the second member. Both invite key and password are rotated.
         (
           resource.data.ownerUid == request.auth.uid
           && resource.data.secondMemberUid is string
@@ -50,9 +67,20 @@ service cloud.firestore {
           && request.resource.data.inviteCode is string
           && request.resource.data.inviteCode.size() >= 32
           && request.resource.data.inviteCode != resource.data.inviteCode
+          && request.resource.data.roomPasswordHash is string
+          && request.resource.data.roomPasswordHash.size() == 64
+          && (!(resource.data.keys().hasAny(['roomPasswordHash'])) || request.resource.data.roomPasswordHash != resource.data.roomPasswordHash)
           && request.resource.data.kickedUid == resource.data.secondMemberUid
           && request.resource.data.kickedAt == request.time
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['secondMemberUid', 'inviteCode', 'joinProof', 'joinedAt', 'kickedUid', 'kickedAt'])
+          && request.resource.data.passwordProof == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['secondMemberUid', 'inviteCode', 'joinProof', 'passwordProof', 'joinedAt', 'kickedUid', 'kickedAt', 'roomPasswordHash'])
+        ) ||
+        // Only the owner may set or rotate the room-password hash.
+        (
+          resource.data.ownerUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['roomPasswordHash'])
+          && request.resource.data.roomPasswordHash is string
+          && request.resource.data.roomPasswordHash.size() == 64
         ) ||
         // Existing room-name edit permission.
         (
@@ -73,9 +101,6 @@ service cloud.firestore {
         allow read, create, update, delete: if roomIsMember(roomId);
       }
 
-      // A member's name and last-seen heartbeat are readable by the two room
-      // members. Users can write only their own profile; only the owner can
-      // remove another member's profile during a kick.
       match /members/{memberUid} {
         allow read: if roomIsMember(roomId);
         allow create, update: if roomIsMember(roomId)
@@ -90,7 +115,6 @@ service cloud.firestore {
       }
     }
 
-    // All other documents are private by default.
     match /{document=**} {
       allow read, write: if false;
     }
