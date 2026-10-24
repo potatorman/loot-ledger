@@ -289,8 +289,10 @@ let currentRoomId = null, currentRoomData = null, currentShopId = null, nickname
 let shops = [], items = [], unsubscribers = [], fromCache = true, pendingWrites = false, connectionError = "";
 let memberProfiles = {};
 let presenceHeartbeatTimer = null, presenceRefreshTimer = null, presenceWriteBusy = false, accessRevokedHandled = false;
-const PRESENCE_HEARTBEAT_MS = 30000;
-const PRESENCE_ONLINE_WINDOW_MS = 75000;
+let presenceWriteError = null, presenceWriteFailureNotified = false, lastSuccessfulPresenceAt = 0;
+// Refresh regularly, but allow background tabs and brief sleep/network hiccups some grace.
+const PRESENCE_HEARTBEAT_MS = 20000;
+const PRESENCE_ONLINE_WINDOW_MS = 150000;
 let modalCleanup = null;
 let marketSuggestionIndex = -1;
 let pendingInviteCode = null;
@@ -562,9 +564,18 @@ function updateSyncStatus() {
     node.innerHTML = `<span class="status-dot ${offline || connectionError ? "offline" : ""}"></span><span>${escapeHtml(label)}</span>`;
   }
 }
-window.addEventListener("online", () => { connectionError = ""; updateSyncStatus(); renderOnlineMembers(); syncCurrentMemberProfile(); });
+window.addEventListener("online", () => {
+  connectionError = ""; updateSyncStatus(); renderOnlineMembers();
+  syncCurrentMemberProfile();
+});
 window.addEventListener("offline", () => { updateSyncStatus(); renderOnlineMembers(); });
-window.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") syncCurrentMemberProfile(); });
+window.addEventListener("focus", () => { if (document.visibilityState === "visible") syncCurrentMemberProfile(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    renderOnlineMembers();
+    syncCurrentMemberProfile();
+  }
+});
 
 async function handleRoomOnStart() {
   const params = new URLSearchParams(location.search);
@@ -710,7 +721,7 @@ async function startRoom(roomId, data) {
     else toast("Member list sync error: " + error.message, "bad");
   }));
   startPresenceHeartbeat();
-  presenceRefreshTimer = setInterval(() => { renderOnlineMembers(); if ($("memberRosterList")) renderMemberRosterRows(); }, 5000);
+  presenceRefreshTimer = setInterval(() => { renderOnlineMembers(); if ($("memberRosterList")) renderMemberRosterRows(); }, 2500);
   renderHeaderRoom();
 }
 function unsubscribeAll() {
@@ -738,12 +749,15 @@ function millisFromTimestamp(value) {
   } catch { return null; }
 }
 function memberIsOnline(uid) {
-  if (!roomMemberIds().includes(uid)) return false;
-  if (uid === currentUser?.uid && !navigator.onLine) return false;
-  const stamp = millisFromTimestamp(memberProfiles[uid]?.lastSeenAt);
-  if (stamp == null) return uid === currentUser?.uid && navigator.onLine;
+  if (!roomMemberIds().includes(uid) || !navigator.onLine) return false;
+  // The current tab is direct evidence of activity. Do not let a stale Firestore
+  // timestamp or a delayed snapshot mark the person using this tab as offline.
+  if (uid === currentUser?.uid) return true; // This open, connected session is online even if its saved heartbeat is stale.
+  const profileStamp = millisFromTimestamp(memberProfiles[uid]?.lastSeenAt);
+  const stamp = Math.max(profileStamp || 0, uid === currentUser?.uid ? lastSuccessfulPresenceAt : 0);
+  if (!stamp) return false;
   const age = Date.now() - stamp;
-  return age >= -10000 && age <= PRESENCE_ONLINE_WINDOW_MS;
+  return age >= -30000 && age <= PRESENCE_ONLINE_WINDOW_MS;
 }
 function memberDisplayName(uid) {
   const savedName = String(memberProfiles[uid]?.nickname || "").trim();
@@ -769,17 +783,23 @@ function renderMemberRosterRows() {
     root.innerHTML = '<div class="notice">No room members are available. Check your connection and room access.</div>';
     return;
   }
-  root.innerHTML = ids.map(uid => {
+  const presenceNotice = presenceWriteError
+    ? '<div class="notice" style="margin-bottom:12px">Your tab is shown online locally, but Firebase could not save your heartbeat. Publish the latest <code>firestore.rules</code> and check your connection so your friend can see your status too.</div>'
+    : '';
+  root.innerHTML = presenceNotice + ids.map(uid => {
     const online = memberIsOnline(uid);
     const isOwner = uid === currentRoomData?.ownerUid;
     const canKick = currentUser?.uid === currentRoomData?.ownerUid && !isOwner && uid === currentRoomData?.secondMemberUid;
     const role = isOwner ? '<span class="member-role-badge">Owner</span>' : '<span class="member-role-badge">Member</span>';
     const kick = canKick ? `<button type="button" class="danger member-kick-btn" data-kick-uid="${escapeHtml(uid)}">Kick</button>` : '';
-    return `<div class="member-roster-row"><span class="member-status-dot ${online ? "online" : ""}" title="${online ? "Online" : "Offline"}" aria-label="${online ? "Online" : "Offline"}"></span><div class="member-roster-info"><div class="member-roster-name">${escapeHtml(memberDisplayName(uid))}${role}${uid === currentUser?.uid ? '<span class="muted small">You</span>' : ''}</div><div class="member-roster-meta">${online ? "Online now" : "Offline"}${memberProfiles[uid]?.lastSeenAt ? " · Last seen " + escapeHtml(timeAgo(memberProfiles[uid].lastSeenAt)) : " · Not seen on this version yet"}</div></div>${kick}</div>`;
+    const lastSeen = memberProfiles[uid]?.lastSeenAt || (uid === currentUser?.uid && lastSuccessfulPresenceAt ? new Date(lastSuccessfulPresenceAt) : null);
+    const statusText = online ? "Online now" : "Offline";
+    const lastSeenText = lastSeen ? " · Last seen " + escapeHtml(timeAgo(lastSeen)) : " · Waiting for first heartbeat";
+    return `<div class="member-roster-row"><span class="member-status-dot ${online ? "online" : ""}" title="${online ? "Online" : "Offline"}" aria-label="${online ? "Online" : "Offline"}"></span><div class="member-roster-info"><div class="member-roster-name">${escapeHtml(memberDisplayName(uid))}${role}${uid === currentUser?.uid ? '<span class="muted small">You</span>' : ''}</div><div class="member-roster-meta">${statusText}${lastSeenText}</div></div>${kick}</div>`;
   }).join("");
 }
 function showRoomMembers() {
-  openModal("ROOM MEMBERS", `<h2 id="modalTitle">People in this room</h2><p>Green means the app has received a recent heartbeat. Red means no recent heartbeat, so the member is shown as offline. Status can take up to about a minute to change after someone closes their browser.</p><div id="memberRosterList" class="member-roster-list"></div><div class="notice">Only the room owner can kick the other member. Kicking them removes their access and rotates the invite link, so an old invite won't work.</div><div class="modal-actions"><button type="button" id="cancelModal" class="ghost">Close</button></div>`);
+  openModal("ROOM MEMBERS", `<h2 id="modalTitle">People in this room</h2><p>Green means the app has received a recent heartbeat. Red means no recent heartbeat, so the member is shown as offline. Status refreshes every few seconds. A disconnected or sleeping browser can take up to about 2–3 minutes to appear offline.</p><div id="memberRosterList" class="member-roster-list"></div><div class="notice">Only the room owner can kick the other member. Kicking them removes their access and rotates the invite link, so an old invite won't work.</div><div class="modal-actions"><button type="button" id="cancelModal" class="ghost">Close</button></div>`);
   $("cancelModal").addEventListener("click", closeModal);
   $("memberRosterList").addEventListener("click", event => {
     const btn = event.target.closest("[data-kick-uid]");
@@ -788,23 +808,67 @@ function showRoomMembers() {
   renderMemberRosterRows();
 }
 async function syncCurrentMemberProfile() {
-  if (!db || !currentUser || !currentRoomId || !navigator.onLine || presenceWriteBusy || !roomMemberIds().includes(currentUser.uid)) return;
+  if (!db || !currentUser || !currentRoomId || !navigator.onLine || presenceWriteBusy || !roomMemberIds().includes(currentUser.uid)) {
+    renderOnlineMembers();
+    return;
+  }
   presenceWriteBusy = true;
   const roomId = currentRoomId, uid = currentUser.uid;
   try {
-    await setDoc(doc(db, "rooms", roomId, "members", uid), {
+    const writePromise = setDoc(doc(db, "rooms", roomId, "members", uid), {
       uid, nickname: String(nickname || "Player").trim().slice(0, 28) || "Player",
       lastSeenAt: serverTimestamp(), updatedAt: serverTimestamp()
     }, { merge: true });
+    let timeoutId;
+    try {
+      await Promise.race([
+        writePromise,
+        new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            const timeoutError = new Error("Presence heartbeat timed out waiting for Firebase.");
+            timeoutError.code = "heartbeat-timeout";
+            reject(timeoutError);
+          }, 12000);
+        })
+      ]);
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
+    lastSuccessfulPresenceAt = Date.now();
+    presenceWriteError = null;
+    presenceWriteFailureNotified = false;
+    // Optimistically update the current user's profile so the UI doesn't wait for
+    // the member collection snapshot to round-trip from Firestore.
+    memberProfiles[uid] = {
+      ...(memberProfiles[uid] || {}), uid,
+      nickname: String(nickname || "Player").trim().slice(0, 28) || "Player",
+      lastSeenAt: new Date(lastSuccessfulPresenceAt)
+    };
   } catch (error) {
-    if (error?.code === "permission-denied") console.warn("Member presence write was denied. Check the updated Firestore rules.", error);
-    else console.debug("Member heartbeat failed; it will retry.", error);
+    presenceWriteError = error?.code || error?.message || "unknown-error";
+    if (!presenceWriteFailureNotified) {
+      presenceWriteFailureNotified = true;
+      console.warn("Loot Ledger could not save the presence heartbeat. Check the published Firestore rules and room membership.", error);
+      if (error?.code === "permission-denied") {
+        toast("Online status can't sync yet. Publish the latest firestore.rules in Firebase Console.", "bad");
+      } else if (error?.code === "unavailable" || error?.code === "heartbeat-timeout" || !navigator.onLine) {
+        // Transient offline/network failure: retry on the next heartbeat and show the roster hint.
+      } else {
+        toast("Couldn't update online status: " + (error?.message || error?.code || "unknown error"), "bad");
+      }
+    }
   } finally {
     presenceWriteBusy = false;
+    renderOnlineMembers();
+    if ($("memberRosterList")) renderMemberRosterRows();
   }
 }
 function startPresenceHeartbeat() {
   if (presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+  // Clear previous-room errors; each room can have its own rules/deploy state.
+  presenceWriteError = null;
+  presenceWriteFailureNotified = false;
+  lastSuccessfulPresenceAt = 0;
   syncCurrentMemberProfile();
   presenceHeartbeatTimer = setInterval(syncCurrentMemberProfile, PRESENCE_HEARTBEAT_MS);
 }
