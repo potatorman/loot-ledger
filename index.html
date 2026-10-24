@@ -96,6 +96,28 @@
 @media(max-width:680px){.app-market-header{padding:10px 13px;gap:10px}.app-market-header .brand{flex:0 0 auto}.app-market-header .brand span{font-size:18px}.top-market-tools{order:3;flex-basis:100%;gap:7px}.market-global-search{padding-top:11px;padding-bottom:11px}.mode-label{display:none}.market-mode{width:88px;flex-basis:88px;padding:11px 8px}.app-market-header .sync-pill{font-size:10px;padding:7px 9px}.app-market-header .header-right{margin-left:auto}.app-market-header .header-title-small{display:none}.app-market-header #shareBtn{padding:9px 11px}.finder-results{padding:11px;gap:12px}.finder-group-head{padding:11px}.recommendations{padding:9px;gap:7px}.recommendation{padding:10px;gap:7px}.recommendation-price{font-size:16px}.offer-list{padding:0 9px 9px}.offer-row{grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;padding:10px}.offer-shop{grid-column:1/-1}.offer-row .open-shop-btn{grid-column:1/-1}.offers-head{padding:10px 10px 7px}.offer-count{font-size:9px}.finder-item-title strong{font-size:12px}}
 @media(max-width:430px){.app-market-header .brand{gap:8px}.app-market-header .brand-icon{width:35px;height:35px}.app-market-header .brand span{font-size:16px}.app-market-header .sync-pill{max-width:105px;overflow:hidden}.market-mode{width:78px;flex-basis:78px;font-size:11px}.autocomplete-menu{min-width:0}.recommendation-price{font-size:15px}}
 
+
+/* Item emoji picker */
+.emoji-input-row{display:flex;align-items:center;gap:8px}
+.emoji-input-row input{flex:1;min-width:0}
+.emoji-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;flex:0 0 auto}
+.emoji-toggle-preview{font-size:18px;line-height:1;min-width:20px}
+.emoji-picker-panel{margin-top:10px;padding:12px;background:#0d121c;border:1px solid #343d53;border-radius:14px}
+.emoji-picker-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.emoji-picker-toolbar strong{font-size:12px}
+.emoji-picker-toolbar input{width:min(220px,58%);background:#151b28;border:1px solid #343d53;color:var(--text);border-radius:9px;padding:8px 10px;font-size:12px;outline:none}
+.emoji-picker-toolbar input:focus{border-color:#9b80ff}
+.emoji-picker-categories{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.emoji-category-btn{border:1px solid #333d52;background:#171e2c;color:#9eabc0;border-radius:99px;padding:6px 9px;font-size:10px;font-weight:750}
+.emoji-category-btn:hover{border-color:#7360c1;color:#e6e0ff}
+.emoji-category-btn.active{background:#332a55;border-color:#66539e;color:#eee9ff}
+.emoji-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;max-height:190px;overflow-y:auto;padding:2px}
+.emoji-choice{display:grid;place-items:center;min-width:0;min-height:39px;border:1px solid #252e40;background:#171e2c;border-radius:9px;color:white;font-size:22px;line-height:1;padding:5px 2px}
+.emoji-choice:hover,.emoji-choice:focus-visible{background:#30264f;border-color:#9b80ff;outline:none;transform:translateY(-1px)}
+.emoji-no-results{grid-column:1/-1;text-align:center;color:#8995aa;font-size:12px;padding:20px 8px}
+.emoji-picker-hint{display:block;margin-top:9px;color:#7f8aa0;font-size:10px}
+@media(max-width:430px){.emoji-input-row{align-items:stretch;flex-direction:column}.emoji-toggle{width:100%}.emoji-picker-toolbar{align-items:stretch;flex-direction:column}.emoji-picker-toolbar input{width:100%}.emoji-grid{grid-template-columns:repeat(7,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -207,6 +229,56 @@ let currentRoomId = null, currentRoomData = null, currentShopId = null, nickname
 let shops = [], items = [], unsubscribers = [], fromCache = true, pendingWrites = false, connectionError = "";
 let modalCleanup = null;
 let marketSuggestionIndex = -1;
+
+const ITEM_EMOJI_GROUPS = {
+  Weapons: [
+    ["⚔️","Sword"],["🗡️","Dagger"],["🏹","Bow"],["🪓","Battle axe"],["🔱","Trident"],["🥊","Fist weapon"],
+    ["🛡️","Shield"],["🏏","Club"],["🪃","Boomerang"],["🎯","Target"]
+  ],
+  Tools: [
+    ["⛏️","Pickaxe"],["🪓","Axe"],["🔨","Hammer"],["⚒️","Crossed hammers"],["🛠️","Tools"],["🔧","Wrench"],
+    ["🪛","Screwdriver"],["🧰","Toolbox"],["⚙️","Gear"],["🪚","Saw"],["🪜","Ladder"],["🪣","Bucket"],["🧹","Broom"]
+  ],
+  Armor: [
+    ["🛡️","Shield"],["🪖","Helmet"],["🥾","Boots"],["🧤","Gloves"],["👑","Crown"],["💍","Ring"],
+    ["📿","Necklace"],["🧿","Amulet"],["🪬","Talisman"],["🥽","Goggles"],["🧥","Armor"],["🎭","Mask"]
+  ],
+  Magic: [
+    ["🧪","Potion"],["⚗️","Alchemy"],["🔮","Crystal ball"],["🪄","Wand"],["✨","Sparkles"],["🌟","Star"],
+    ["💫","Magic"],["🌀","Portal"],["🔯","Rune"],["🧙","Wizard"],["☄️","Comet"],["🔥","Fire"],
+    ["❄️","Ice"],["⚡","Lightning"],["🌙","Moon"],["☀️","Sun"],["🪐","Planet"]
+  ],
+  Materials: [
+    ["💎","Gem"],["🪙","Coin"],["🪵","Wood"],["🪨","Stone"],["🧱","Brick"],["⛓️","Chain"],
+    ["🧵","Thread"],["🧶","Yarn"],["🪡","Needle"],["🧲","Magnet"],["🧊","Ice block"],["🪸","Coral"],
+    ["📦","Crate"],["🪣","Bucket"],["🪶","Feather"],["🦴","Bone"],["🪹","Nest"],["🔩","Metal part"],
+    ["🧯","Fire extinguisher"],["🪨","Ore"],["🧪","Reagent"]
+  ],
+  Food: [
+    ["🍎","Apple"],["🍏","Green apple"],["🍊","Orange"],["🍋","Lemon"],["🍇","Grapes"],["🍉","Watermelon"],
+    ["🍓","Strawberry"],["🥕","Carrot"],["🍞","Bread"],["🥩","Meat"],["🍗","Chicken"],["🍖","Roasted meat"],
+    ["🍯","Honey"],["🥔","Potato"],["🥖","Baguette"],["🍄","Mushroom"],["🥛","Milk"],["🧀","Cheese"],
+    ["🥚","Egg"],["🐟","Fish"],["🍪","Cookie"],["🧁","Cupcake"],["🍵","Tea"],["🍖","Food ration"]
+  ],
+  Nature: [
+    ["🌿","Herb"],["🍀","Clover"],["🌱","Seedling"],["🌳","Tree"],["🌲","Pine tree"],["🌵","Cactus"],
+    ["🌾","Wheat"],["🌷","Tulip"],["🌹","Rose"],["🌻","Sunflower"],["🌸","Blossom"],["🪴","Potted plant"],
+    ["🐚","Shell"],["🍁","Maple leaf"],["🍂","Fallen leaf"],["🌰","Chestnut"],["🪷","Lotus"],["🪺","Nest"]
+  ],
+  Pets: [
+    ["🐺","Wolf"],["🐉","Dragon"],["🐲","Dragon head"],["🐈","Cat"],["🐕","Dog"],["🦊","Fox"],
+    ["🐻","Bear"],["🐼","Panda"],["🐸","Frog"],["🐢","Turtle"],["🦄","Unicorn"],["🐝","Bee"],
+    ["🐦","Bird"],["🦅","Eagle"],["🐠","Fish pet"],["🦂","Scorpion"],["🕷️","Spider"],["🦇","Bat"],
+    ["🐙","Octopus"],["🦎","Lizard"],["🐌","Snail"],["🦋","Butterfly"]
+  ],
+  Other: [
+    ["📦","Box"],["🎁","Gift"],["🗝️","Old key"],["🔑","Key"],["🏆","Trophy"],["🎖️","Medal"],
+    ["🎟️","Ticket"],["🧭","Compass"],["🗺️","Map"],["🏪","Shop"],["📜","Scroll"],["💰","Money bag"],
+    ["🧾","Receipt"],["🏺","Vase"],["📚","Books"],["🎒","Bag"],["🪙","Coins"],["🧿","Lucky charm"],
+    ["🎵","Music"],["🪄","Magic wand"],["🕯️","Candle"],["⏳","Hourglass"],["🧸","Toy"],["🚪","Door"]
+  ]
+};
+const ITEM_EMOJI_OPTIONS = Object.entries(ITEM_EMOJI_GROUPS).flatMap(([category, entries]) => entries.map(([emoji, label]) => ({emoji,label,category})));
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>\"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[ch]));
@@ -660,6 +732,59 @@ function openModal(eyebrow, html, onCleanup=null) {
   setTimeout(()=>$("modalContent").querySelector("input:not([type=hidden]),textarea,select")?.focus(),50);
 }
 function closeModal() { $("modalLayer").classList.add("hidden"); if (modalCleanup) { try{modalCleanup();}catch{} } modalCleanup=null; $("modalContent").innerHTML=""; }
+
+function bindItemEmojiPicker() {
+  const input = $("itemIcon"), toggle = $("itemEmojiToggle"), panel = $("itemEmojiPicker");
+  const search = $("itemEmojiSearch"), categoriesRoot = $("itemEmojiCategories"), grid = $("itemEmojiGrid");
+  if (!input || !toggle || !panel || !search || !categoriesRoot || !grid) return;
+  const categories = ["All", ...Object.keys(ITEM_EMOJI_GROUPS)];
+  let selectedCategory = "All";
+
+  const updatePreview = () => { $("itemEmojiPreview").textContent = input.value.trim() || "◈"; };
+  const renderCategories = () => {
+    categoriesRoot.innerHTML = categories.map(category =>
+      `<button type="button" class="emoji-category-btn ${category===selectedCategory?"active":""}" data-emoji-category="${escapeHtml(category)}" aria-pressed="${category===selectedCategory}">${escapeHtml(category)}</button>`
+    ).join("");
+  };
+  const renderOptions = () => {
+    const query = search.value.trim().toLocaleLowerCase();
+    const options = ITEM_EMOJI_OPTIONS.filter(option =>
+      (selectedCategory === "All" || option.category === selectedCategory) &&
+      (!query || option.label.toLocaleLowerCase().includes(query) || option.category.toLocaleLowerCase().includes(query) || option.emoji.includes(query))
+    );
+    grid.innerHTML = options.length ? options.map(option =>
+      `<button type="button" class="emoji-choice" data-item-emoji="${escapeHtml(option.emoji)}" title="${escapeHtml(option.label)}" aria-label="Choose ${escapeHtml(option.label)}">${escapeHtml(option.emoji)}</button>`
+    ).join("") : `<div class="emoji-no-results">No emojis found. Try another search.</div>`;
+  };
+  const render = () => { renderCategories(); renderOptions(); };
+
+  toggle.addEventListener("click", () => {
+    const opening = panel.classList.contains("hidden");
+    panel.classList.toggle("hidden", !opening);
+    toggle.setAttribute("aria-expanded", String(opening));
+    if (opening) { render(); search.focus(); }
+  });
+  input.addEventListener("input", updatePreview);
+  search.addEventListener("input", renderOptions);
+  categoriesRoot.addEventListener("click", event => {
+    const button = event.target.closest("[data-emoji-category]");
+    if (!button) return;
+    selectedCategory = button.dataset.emojiCategory;
+    renderCategories(); renderOptions();
+  });
+  grid.addEventListener("click", event => {
+    const button = event.target.closest("[data-item-emoji]");
+    if (!button) return;
+    input.value = button.dataset.itemEmoji;
+    updatePreview();
+    panel.classList.add("hidden");
+    toggle.setAttribute("aria-expanded", "false");
+    input.focus();
+  });
+  updatePreview();
+  render();
+}
+
 function openAddShopDialog() {
   openModal("NEW SHOP", `<h2 id="modalTitle">Add a shop</h2><p>Give each in-game merchant or market their own section.</p><form id="shopForm"><div class="field"><label for="shopName">Shop name</label><input id="shopName" maxlength="55" required placeholder="e.g. Forest Merchant"></div><div class="field"><label for="shopIcon">Icon (emoji or symbol)</label><input id="shopIcon" maxlength="8" value="🏪" placeholder="🏪"></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Create shop</button></div></form>`);
   $("cancelModal").addEventListener("click",closeModal);
@@ -675,8 +800,9 @@ function openShopManageDialog() {
 function openItemDialog(item=null) {
   if (!currentShopId) { toast("Add a shop first."); return; }
   const editing=Boolean(item);
-  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Enter <b>500k</b>, <b>1.2m</b>, or a full number. Use <b>?</b>, <b>N/A</b>, or <b>-</b> if this shop does not offer that transaction. Leave blank if you have not checked yet.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy from shop · what you pay</label><input id="buyPrice" maxlength="40" placeholder="e.g. 500k or ? if not sold here" value="${escapeHtml(fmtPriceInput(item?.buyPrice))}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell to shop · what they pay you</label><input id="sellPrice" maxlength="40" placeholder="e.g. 500k or ? if they don’t buy it" value="${escapeHtml(fmtPriceInput(item?.sellPrice))}"></div></div><div class="field"><label for="itemIcon">Icon (emoji or symbol)</label><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈"></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
+  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Enter <b>500k</b>, <b>1.2m</b>, or a full number. Use <b>?</b>, <b>N/A</b>, or <b>-</b> if this shop does not offer that transaction. Leave blank if you have not checked yet.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy from shop · what you pay</label><input id="buyPrice" maxlength="40" placeholder="e.g. 500k or ? if not sold here" value="${escapeHtml(fmtPriceInput(item?.buyPrice))}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell to shop · what they pay you</label><input id="sellPrice" maxlength="40" placeholder="e.g. 500k or ? if they don’t buy it" value="${escapeHtml(fmtPriceInput(item?.sellPrice))}"></div></div><div class="field"><label for="itemIcon">Item icon</label><div class="emoji-input-row"><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈ or type/paste an emoji"><button type="button" class="secondary emoji-toggle" id="itemEmojiToggle" aria-expanded="false" aria-controls="itemEmojiPicker"><span class="emoji-toggle-preview" id="itemEmojiPreview">${escapeHtml(item?.icon||"◈")}</span> Choose emoji</button></div><div id="itemEmojiPicker" class="emoji-picker-panel hidden"><div class="emoji-picker-toolbar"><strong>Pick an emoji</strong><input id="itemEmojiSearch" type="search" placeholder="Search: pickaxe, sword, gem…" aria-label="Search emojis"></div><div id="itemEmojiCategories" class="emoji-picker-categories" aria-label="Emoji categories"></div><div id="itemEmojiGrid" class="emoji-grid" role="group" aria-label="Available emojis"></div><span class="emoji-picker-hint">Click an emoji to use it. You can also type or paste your own into the icon field.</span></div></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
   $("cancelModal").addEventListener("click",closeModal);
+  bindItemEmojiPicker();
   $("itemForm").addEventListener("submit",event=>{event.preventDefault();const name=$("itemName").value.trim();if(!name)return;
     const data={shopId:currentShopId,name,buyPrice:normalizePriceInput($("buyPrice").value),sellPrice:normalizePriceInput($("sellPrice").value),icon:$("itemIcon").value.trim()||"◈",notes:$("itemNotes").value.trim(),updatedBy:nickname,updatedAt:serverTimestamp()};
     let write;
@@ -762,7 +888,7 @@ $("clearMarketSearchBtn").addEventListener("click",()=>{$("marketSearchInput").v
 document.addEventListener("click",event=>{if(!event.target.closest(".top-market-tools"))hideMarketSuggestions();});
 $("mobileShopSelect").addEventListener("change",event=>selectShop(event.target.value));
 $("shareBtn").addEventListener("click",shareInvite);$("exportBtn").addEventListener("click",exportCSV);$("changeNameBtn").addEventListener("click",promptChangeName);$("roomInfoBtn").addEventListener("click",showRoomInfo);$("switchRoomBtn").addEventListener("click",switchRoom);
-$("modalCloseTop").addEventListener("click",closeModal);$("modalLayer").addEventListener("click",event=>{if(event.target===$("modalLayer"))closeModal();});window.addEventListener("keydown",event=>{if(event.key==="Escape")closeModal();});
+$("modalCloseTop").addEventListener("click",closeModal);$("modalLayer").addEventListener("click",event=>{if(event.target===$("modalLayer"))closeModal();});window.addEventListener("keydown",event=>{if(event.key==="Escape"){const picker=$("itemEmojiPicker");if(picker&&!picker.classList.contains("hidden")){picker.classList.add("hidden");$("itemEmojiToggle")?.setAttribute("aria-expanded","false");event.preventDefault();}else closeModal();}});
 
 // Pre-fill saved settings, then reconnect this browser to its room if possible.
 nickname = localStorage.getItem(STORAGE_NAME) || nickname;
