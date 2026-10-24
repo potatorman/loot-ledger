@@ -145,6 +145,9 @@
 .room-login-hint{margin-top:10px;padding:10px 11px;border:1px solid #37334f;background:#1a1a2a;color:#aaa3d3;border-radius:10px;font-size:10px;line-height:1.6}
 @media(max-width:620px){.lobby-profile-bar{grid-template-columns:1fr}.lobby-profile-bar button{width:100%}}
 
+
+/* Optional shop-owner labels */
+.shop-nav-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}.shop-name{flex:initial}.shop-owner-name{font-size:10px;color:#7f8ba2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}.shop-nav.active .shop-owner-name{color:#b6a9e9}.offer-shop-owner{font-size:10px;color:#a69add;margin-top:2px}.shop-owner-detail{color:#b6a9e9!important}
 </style>
 </head>
 <body>
@@ -1004,7 +1007,7 @@ function marketCatalog() {
   const shopsById = new Map(shops.map(shop => [shop.id, shop]));
   return items.map(item => {
     const shop = shopsById.get(item.shopId);
-    return { ...item, shopName: shop?.name || "Unknown shop", shopIcon: shop?.icon || "🏪" };
+    return { ...item, shopName: shop?.name || "Unknown shop", shopOwnerName: shop?.ownerName || "", shopIcon: shop?.icon || "🏪" };
   }).filter(item => item.name && shopsById.has(item.shopId));
 }
 function groupedMarketItems(query) {
@@ -1013,7 +1016,8 @@ function groupedMarketItems(query) {
   const seeds = !q ? [] : catalog.filter(item =>
     String(item.name || "").toLowerCase().includes(q) ||
     String(item.notes || "").toLowerCase().includes(q) ||
-    String(item.shopName || "").toLowerCase().includes(q)
+    String(item.shopName || "").toLowerCase().includes(q) ||
+    String(item.shopOwnerName || "").toLowerCase().includes(q)
   );
   // If a hit came from one shop or an item's notes, pull in the same item from every shop
   // so the comparison still covers all available offers, not only the matched document.
@@ -1104,7 +1108,7 @@ function recommendationMarkup(offer, label, modeClass, field, kind, allOffers = 
   }
   const price = fmtPrice(offer[field], field === "buyPrice" ? "buy" : "sell");
   const detail = kind === "buy-price" ? "Shop sells · you pay" : "Shop pays · you sell";
-  return `<div class="recommendation ${modeClass}"><div><div class="recommendation-kicker">${escapeHtml(label)}</div><div class="recommendation-shop">${escapeHtml(offer.shopIcon)} ${escapeHtml(offer.shopName)}</div><div class="recommendation-detail">${escapeHtml(detail)} · ${escapeHtml(offer.updatedBy || "No editor recorded")}</div></div><div class="recommendation-price ${kind}">${escapeHtml(price)}<small>coins</small></div></div>`;
+  return `<div class="recommendation ${modeClass}"><div><div class="recommendation-kicker">${escapeHtml(label)}</div><div class="recommendation-shop">${escapeHtml(offer.shopIcon)} ${escapeHtml(offer.shopName)}</div>${offer.shopOwnerName ? `<div class="recommendation-detail shop-owner-detail">Owner: ${escapeHtml(offer.shopOwnerName)}</div>` : ""}<div class="recommendation-detail">${escapeHtml(detail)} · ${escapeHtml(offer.updatedBy || "No editor recorded")}</div></div><div class="recommendation-price ${kind}">${escapeHtml(price)}<small>coins</small></div></div>`;
 }
 function renderMarketFinder() {
   const root = $("marketFinderResults");
@@ -1146,7 +1150,7 @@ function renderMarketFinder() {
       const sellIsBest = bestPayout && offer.id === bestPayout.id;
       const selectedOffer = mode === "sell" ? sellIsBest : buyIsBest;
       const badges = `${buyIsBest ? '<span class="offer-badge cheapest">CHEAPEST BUY</span>' : ''}${sellIsBest ? '<span class="offer-badge payout">BEST SELL PAYOUT</span>' : ''}`;
-      return `<div class="offer-row ${selectedOffer ? "top-offer" : ""}"><div class="offer-shop"><span class="offer-shop-icon">${escapeHtml(offer.shopIcon)}</span><div><div class="offer-shop-name">${escapeHtml(offer.shopName)}</div><div class="offer-shop-sub">${escapeHtml(offer.updatedBy || "No editor recorded")} · ${escapeHtml(timeAgo(offer.updatedAt))}</div><div class="offer-badges">${badges}</div></div></div><div class="offer-price-block"><span class="offer-price-label">Shop sells · you pay</span><span class="offer-price-value" style="color:#aeeacb">${escapeHtml(fmtPrice(offer.buyPrice, "buy"))}</span></div><div class="offer-price-block"><span class="offer-price-label">Shop pays · you sell</span><span class="offer-price-value" style="color:#ffc5a0">${escapeHtml(fmtPrice(offer.sellPrice, "sell"))}</span></div><button type="button" class="secondary open-shop-btn" data-open-shop="${escapeHtml(offer.shopId)}">View shop ↗</button></div>`;
+      return `<div class="offer-row ${selectedOffer ? "top-offer" : ""}"><div class="offer-shop"><span class="offer-shop-icon">${escapeHtml(offer.shopIcon)}</span><div><div class="offer-shop-name">${escapeHtml(offer.shopName)}</div>${offer.shopOwnerName ? `<div class="offer-shop-owner">Owner: ${escapeHtml(offer.shopOwnerName)}</div>` : ""}<div class="offer-shop-sub">${escapeHtml(offer.updatedBy || "No editor recorded")} · ${escapeHtml(timeAgo(offer.updatedAt))}</div><div class="offer-badges">${badges}</div></div></div><div class="offer-price-block"><span class="offer-price-label">Shop sells · you pay</span><span class="offer-price-value" style="color:#aeeacb">${escapeHtml(fmtPrice(offer.buyPrice, "buy"))}</span></div><div class="offer-price-block"><span class="offer-price-label">Shop pays · you sell</span><span class="offer-price-value" style="color:#ffc5a0">${escapeHtml(fmtPrice(offer.sellPrice, "sell"))}</span></div><button type="button" class="secondary open-shop-btn" data-open-shop="${escapeHtml(offer.shopId)}">View shop ↗</button></div>`;
     }).join("");
     return `<section class="finder-group"><div class="finder-group-head"><div class="finder-item-title"><div class="item-symbol">${escapeHtml(group.icon)}</div><div><strong>${escapeHtml(group.name)}</strong><small>Compare this item across all matching shops</small></div></div><span class="offer-count">${offers.length} ${offers.length===1?"shop listing":"shop listings"}</span></div><div class="recommendations">${recommendationMarkup(first,firstLabel,mode === "sell" ? "best-payout" : "best-buy",mode === "sell" ? "sellPrice" : "buyPrice",mode === "sell" ? "sell-price" : "buy-price",offers)}${recommendationMarkup(second,secondLabel,mode === "sell" ? "best-buy" : "best-payout",mode === "sell" ? "buyPrice" : "sellPrice",mode === "sell" ? "buy-price" : "sell-price",offers)}</div><div class="offers-head"><span>Every matching offer</span><span>${mode === "sell" ? "Highest payout first" : "Lowest price first"}</span></div><div class="offer-list">${offersHtml}</div></section>`;
   }).join("") + `<div class="finder-note"><strong>Price guide:</strong> “Shop sells · you pay” is the cost to buy the item. “Shop pays · you sell” is what you receive when selling it. Rankings are calculated separately, so the cheapest shop and the best-paying shop can be different.</div>`;
@@ -1158,12 +1162,12 @@ function renderMarketFinder() {
 function renderShopNav() {
   const nav = $("shopNavList");
   if (!shops.length) { nav.innerHTML = '<div class="muted small" style="padding:8px 10px;line-height:1.7">No shops yet. Add your first shop to start tracking prices.</div>'; return; }
-  nav.innerHTML = shops.map(shop => `<button class="shop-nav ${shop.id===currentShopId?"active":""}" data-shop-id="${escapeHtml(shop.id)}"><span class="shop-symbol">${escapeHtml(shop.icon||"🏪")}</span><span class="shop-name">${escapeHtml(shop.name||"Unnamed shop")}</span><span class="shop-count">${items.filter(i=>i.shopId===shop.id).length}</span></button>`).join("");
+  nav.innerHTML = shops.map(shop => `<button class="shop-nav ${shop.id===currentShopId?"active":""}" data-shop-id="${escapeHtml(shop.id)}"><span class="shop-symbol">${escapeHtml(shop.icon||"🏪")}</span><span class="shop-nav-copy"><span class="shop-name">${escapeHtml(shop.name||"Unnamed shop")}</span>${shop.ownerName ? `<span class="shop-owner-name">Owner: ${escapeHtml(shop.ownerName)}</span>` : ""}</span><span class="shop-count">${items.filter(i=>i.shopId===shop.id).length}</span></button>`).join("");
   nav.querySelectorAll("[data-shop-id]").forEach(btn=>btn.addEventListener("click",()=>selectShop(btn.dataset.shopId)));
 }
 function renderShopSelect() {
   const select = $("mobileShopSelect");
-  select.innerHTML = '<option value="">Choose a shop…</option>' + shops.map(s=>`<option value="${escapeHtml(s.id)}" ${s.id===currentShopId?"selected":""}>${escapeHtml(s.icon||"🏪")} ${escapeHtml(s.name)}</option>`).join("");
+  select.innerHTML = '<option value="">Choose a shop…</option>' + shops.map(s=>`<option value="${escapeHtml(s.id)}" ${s.id===currentShopId?"selected":""}>${escapeHtml(s.icon||"🏪")} ${escapeHtml(s.name)}${s.ownerName ? ` — Owner: ${escapeHtml(s.ownerName)}` : ""}</option>`).join("");
 }
 function selectShop(id) { currentShopId=id; if (currentRoomId) localStorage.setItem("lootLedger.shop."+currentRoomId,id||""); $("searchInput").value=""; renderAll(); }
 function renderStats() {
@@ -1173,7 +1177,7 @@ function renderStats() {
   const mostRecent = [...shopItems].sort((a,b)=>timeValue(b.updatedAt)-timeValue(a.updatedAt))[0];
   $("lastChangeStat").textContent = mostRecent ? timeAgo(mostRecent.updatedAt) : "No edits yet";
   $("pageShopTitle").textContent = shop ? shop.name : "Your game shops";
-  $("pageSubtitle").textContent = shop ? `${shop.icon||"🏪"} ${shop.name} · Shared price reference` : "Add the shops from your game to start tracking prices.";
+  $("pageSubtitle").textContent = shop ? `${shop.icon||"🏪"} ${shop.name}${shop.ownerName ? ` · Owner: ${shop.ownerName}` : ""} · Shared price reference` : "Add the shops from your game to start tracking prices.";
   $("crumbShop").textContent = shop ? shop.name : "No shop selected";
   $("tableSubtitle").textContent = shop ? `${shopItems.length} item${shopItems.length===1?"":"s"} · Last editor is shown on each row` : "Buy and sell prices at a glance";
 }
@@ -1254,16 +1258,16 @@ function bindItemEmojiPicker() {
 }
 
 function openAddShopDialog() {
-  openModal("NEW SHOP", `<h2 id="modalTitle">Add a shop</h2><p>Give each in-game merchant or market their own section.</p><form id="shopForm"><div class="field"><label for="shopName">Shop name</label><input id="shopName" maxlength="55" required placeholder="e.g. Forest Merchant"></div><div class="field"><label for="shopIcon">Icon (emoji or symbol)</label><input id="shopIcon" maxlength="8" value="🏪" placeholder="🏪"></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Create shop</button></div></form>`);
+  openModal("NEW SHOP", `<h2 id="modalTitle">Add a shop</h2><form id="shopForm"><div class="field"><label for="shopName">Shop name</label><input id="shopName" maxlength="55" required placeholder="e.g. Forest Merchant"></div><div class="field"><label for="shopOwnerName">Shop owner's name (optional)</label><input id="shopOwnerName" maxlength="55" placeholder="e.g. Alex, Merchant Mira"></div><div class="field"><label for="shopIcon">Icon (emoji or symbol)</label><input id="shopIcon" maxlength="8" value="🏪" placeholder="🏪"></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Create shop</button></div></form>`);
   $("cancelModal").addEventListener("click",closeModal);
-  $("shopForm").addEventListener("submit",event=>{event.preventDefault();const name=$("shopName").value.trim();if(!name)return;const submit=event.submitter;submit.disabled=true;const ref=doc(collection(db,"rooms",currentRoomId,"shops"));const write=setDoc(ref,{name,icon:$("shopIcon").value.trim()||"🏪",createdBy:nickname,updatedBy:nickname,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});currentShopId=ref.id;localStorage.setItem("lootLedger.shop."+currentRoomId,ref.id);closeModal();toast(navigator.onLine?"Shop added.":"Shop added locally; it will sync when you're back online.","good");write.catch(error=>toast("Shop save failed: "+error.message,"bad"));});
+  $("shopForm").addEventListener("submit",event=>{event.preventDefault();const name=$("shopName").value.trim();if(!name)return;const submit=event.submitter;submit.disabled=true;const ref=doc(collection(db,"rooms",currentRoomId,"shops"));const write=setDoc(ref,{name,ownerName:$("shopOwnerName").value.trim(),icon:$("shopIcon").value.trim()||"🏪",createdBy:nickname,updatedBy:nickname,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});currentShopId=ref.id;localStorage.setItem("lootLedger.shop."+currentRoomId,ref.id);closeModal();toast(navigator.onLine?"Shop added.":"Shop added locally; it will sync when you're back online.","good");write.catch(error=>toast("Shop save failed: "+error.message,"bad"));});
 }
 function openShopManageDialog() {
   const shop=activeShop(); if(!shop)return;
-  openModal("SHOP OPTIONS", `<h2 id="modalTitle">Manage shop</h2><p>Rename this shared shop or remove it and all its tracked items.</p><form id="manageShopForm"><div class="field"><label for="manageShopName">Shop name</label><input id="manageShopName" maxlength="55" required value="${escapeHtml(shop.name||"")}"></div><div class="field"><label for="manageShopIcon">Icon (emoji or symbol)</label><input id="manageShopIcon" maxlength="8" value="${escapeHtml(shop.icon||"🏪")}"></div><div class="modal-actions" style="justify-content:space-between"><button type="button" class="danger" id="deleteShopBtn">Delete shop</button><div class="row"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Save</button></div></div></form>`);
+  openModal("SHOP OPTIONS", `<h2 id="modalTitle">Manage shop</h2><form id="manageShopForm"><div class="field"><label for="manageShopName">Shop name</label><input id="manageShopName" maxlength="55" required value="${escapeHtml(shop.name||"")}"></div><div class="field"><label for="manageShopOwnerName">Shop owner's name (optional)</label><input id="manageShopOwnerName" maxlength="55" value="${escapeHtml(shop.ownerName||"")}" placeholder="e.g. Alex, Merchant Mira"></div><div class="field"><label for="manageShopIcon">Icon (emoji or symbol)</label><input id="manageShopIcon" maxlength="8" value="${escapeHtml(shop.icon||"🏪")}"></div><div class="modal-actions" style="justify-content:space-between"><button type="button" class="danger" id="deleteShopBtn">Delete shop</button><div class="row"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Save</button></div></div></form>`);
   $("cancelModal").addEventListener("click",closeModal);
   $("deleteShopBtn").addEventListener("click",async()=>{closeModal();await deleteCurrentShop();});
-  $("manageShopForm").addEventListener("submit",event=>{event.preventDefault();const name=$("manageShopName").value.trim();if(!name)return;const write=updateDoc(doc(db,"rooms",currentRoomId,"shops",shop.id),{name,icon:$("manageShopIcon").value.trim()||"🏪",updatedBy:nickname,updatedAt:serverTimestamp()});closeModal();toast(navigator.onLine?"Shop updated.":"Shop updated locally; it will sync when you're back online.","good");write.catch(error=>toast("Shop update failed: "+error.message,"bad"));});
+  $("manageShopForm").addEventListener("submit",event=>{event.preventDefault();const name=$("manageShopName").value.trim();if(!name)return;const write=updateDoc(doc(db,"rooms",currentRoomId,"shops",shop.id),{name,ownerName:$("manageShopOwnerName").value.trim(),icon:$("manageShopIcon").value.trim()||"🏪",updatedBy:nickname,updatedAt:serverTimestamp()});closeModal();toast(navigator.onLine?"Shop updated.":"Shop updated locally; it will sync when you're back online.","good");write.catch(error=>toast("Shop update failed: "+error.message,"bad"));});
 }
 function openItemDialog(item=null) {
   if (!currentShopId) { toast("Add a shop first."); return; }
@@ -1316,7 +1320,7 @@ async function shareInvite() {
 }
 function exportCSV() {
   const shop=activeShop();if(!shop){toast("Choose a shop first.");return;}
-  const list=currentShopItems(); const rows=[["Shop","Item","Buy from shop (you pay)","Sell to shop (shop pays you)","Icon","Notes","Last changed by"],...list.map(item=>[shop.name,item.name||"",fmtPriceInput(item.buyPrice),fmtPriceInput(item.sellPrice),item.icon||"",item.notes||"",item.updatedBy||""])];
+  const list=currentShopItems(); const rows=[["Shop","Shop owner","Item","Buy from shop (you pay)","Sell to shop (shop pays you)","Icon","Notes","Last changed by"],...list.map(item=>[shop.name,shop.ownerName||"",item.name||"",fmtPriceInput(item.buyPrice),fmtPriceInput(item.sellPrice),item.icon||"",item.notes||"",item.updatedBy||""])];
   const csv=rows.map(row=>row.map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(",")).join("\r\n");
   const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=(shop.name||"shop").replace(/[^a-z0-9-_]+/gi,"-").toLowerCase()+"-prices.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast("CSV export downloaded.","good");
 }
