@@ -963,8 +963,8 @@ function compactPrice(number) {
 }
 function fmtPrice(value, direction = "unknown") {
   const str = String(value ?? "").trim();
-  if (!str) return "—";
-  if (isUnavailablePrice(str)) {
+  // Blank prices mean the same thing as "?" (this shop does not offer that transaction).
+  if (!str || isUnavailablePrice(str)) {
     if (direction === "buy") return "Not sold here";
     if (direction === "sell") return "Shop doesn't buy";
     return "Unavailable";
@@ -974,14 +974,14 @@ function fmtPrice(value, direction = "unknown") {
 }
 function fmtPriceInput(value) {
   const str = String(value ?? "").trim();
-  if (!str) return "";
-  if (isUnavailablePrice(str)) return "?";
+  if (!str || isUnavailablePrice(str)) return "?";
   const numeric = priceNumber(str);
   return Number.isFinite(numeric) ? compactPrice(numeric) : str;
 }
 function normalizePriceInput(value) {
   const str = String(value ?? "").trim();
-  return str && isUnavailablePrice(str) ? "?" : str;
+  // Never save an empty buy/sell field: default it to unavailable.
+  return !str || isUnavailablePrice(str) ? "?" : str;
 }
 function activeShop() { return shops.find(s=>s.id===currentShopId) || null; }
 function currentShopItems() { return items.filter(item => item.shopId === currentShopId).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""))); }
@@ -1272,7 +1272,7 @@ function openShopManageDialog() {
 function openItemDialog(item=null) {
   if (!currentShopId) { toast("Add a shop first."); return; }
   const editing=Boolean(item);
-  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Enter <b>500k</b>, <b>1.2m</b>, or a full number. Use <b>?</b>, <b>N/A</b>, or <b>-</b> if this shop does not offer that transaction. Leave blank if you have not checked yet.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy from shop · what you pay</label><input id="buyPrice" maxlength="40" placeholder="e.g. 500k or ? if not sold here" value="${escapeHtml(fmtPriceInput(item?.buyPrice))}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell to shop · what they pay you</label><input id="sellPrice" maxlength="40" placeholder="e.g. 500k or ? if they don’t buy it" value="${escapeHtml(fmtPriceInput(item?.sellPrice))}"></div></div><div class="field"><label for="itemIcon">Item icon</label><div class="emoji-input-row"><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈ or type/paste an emoji"><button type="button" class="secondary emoji-toggle" id="itemEmojiToggle" aria-expanded="false" aria-controls="itemEmojiPicker"><span class="emoji-toggle-preview" id="itemEmojiPreview">${escapeHtml(item?.icon||"◈")}</span> Choose emoji</button></div><div id="itemEmojiPicker" class="emoji-picker-panel hidden"><div class="emoji-picker-toolbar"><strong>Pick an emoji</strong><input id="itemEmojiSearch" type="search" placeholder="Search: pickaxe, sword, gem…" aria-label="Search emojis"></div><div id="itemEmojiCategories" class="emoji-picker-categories" aria-label="Emoji categories"></div><div id="itemEmojiGrid" class="emoji-grid" role="group" aria-label="Available emojis"></div><span class="emoji-picker-hint">Click an emoji to use it. You can also type or paste your own into the icon field.</span></div></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
+  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Enter <b>500k</b>, <b>1.2m</b>, or a full number. A blank price is saved as <b>?</b>.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy from shop · what you pay</label><input id="buyPrice" maxlength="40" placeholder="e.g. 500k or ? if not sold here" value="${escapeHtml(fmtPriceInput(item?.buyPrice))}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell to shop · what they pay you</label><input id="sellPrice" maxlength="40" placeholder="e.g. 500k or ? if they don’t buy it" value="${escapeHtml(fmtPriceInput(item?.sellPrice))}"></div></div><div class="field"><label for="itemIcon">Item icon</label><div class="emoji-input-row"><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈ or type/paste an emoji"><button type="button" class="secondary emoji-toggle" id="itemEmojiToggle" aria-expanded="false" aria-controls="itemEmojiPicker"><span class="emoji-toggle-preview" id="itemEmojiPreview">${escapeHtml(item?.icon||"◈")}</span> Choose emoji</button></div><div id="itemEmojiPicker" class="emoji-picker-panel hidden"><div class="emoji-picker-toolbar"><strong>Pick an emoji</strong><input id="itemEmojiSearch" type="search" placeholder="Search: pickaxe, sword, gem…" aria-label="Search emojis"></div><div id="itemEmojiCategories" class="emoji-picker-categories" aria-label="Emoji categories"></div><div id="itemEmojiGrid" class="emoji-grid" role="group" aria-label="Available emojis"></div><span class="emoji-picker-hint">Click an emoji to use it. You can also type or paste your own into the icon field.</span></div></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
   $("cancelModal").addEventListener("click",closeModal);
   bindItemEmojiPicker();
   $("itemForm").addEventListener("submit",event=>{event.preventDefault();const name=$("itemName").value.trim();if(!name)return;
