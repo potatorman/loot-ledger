@@ -11,8 +11,13 @@ service cloud.firestore {
         (room.ownerUid == request.auth.uid || room.secondMemberUid == request.auth.uid);
     }
 
+    function roomIsOwner(roomId) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/rooms/$(roomId)).data.ownerUid == request.auth.uid;
+    }
+
     match /rooms/{roomId} {
-      // The room creator is the first member. The secret invite key is a random 192-bit value.
+      // The room creator is member one; the random invite key is 192 bits.
       allow create: if signedIn()
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.secondMemberUid == null
@@ -24,9 +29,8 @@ service cloud.firestore {
         (resource.data.ownerUid == request.auth.uid || resource.data.secondMemberUid == request.auth.uid);
       allow list: if false;
 
-      // A friend can claim the one remaining member slot only with the invite key.
-      // After that, secondMemberUid is non-null and no third member can join.
       allow update: if signedIn() && (
+        // A friend can claim the empty second slot only with the current invite key.
         (
           resource.data.secondMemberUid == null
           && request.auth.uid != resource.data.ownerUid
@@ -35,7 +39,23 @@ service cloud.firestore {
           && request.resource.data.ownerUid == resource.data.ownerUid
           && request.resource.data.inviteCode == resource.data.inviteCode
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['secondMemberUid', 'joinProof', 'joinedAt'])
-        ) || (
+        ) ||
+        // Only the owner can kick the second member. The invite key must rotate so
+        // a kicked person cannot use the old invite link to rejoin.
+        (
+          resource.data.ownerUid == request.auth.uid
+          && resource.data.secondMemberUid is string
+          && request.resource.data.secondMemberUid == null
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.inviteCode is string
+          && request.resource.data.inviteCode.size() >= 32
+          && request.resource.data.inviteCode != resource.data.inviteCode
+          && request.resource.data.kickedUid == resource.data.secondMemberUid
+          && request.resource.data.kickedAt == request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['secondMemberUid', 'inviteCode', 'joinProof', 'joinedAt', 'kickedUid', 'kickedAt'])
+        ) ||
+        // Existing room-name edit permission.
+        (
           (resource.data.ownerUid == request.auth.uid || resource.data.secondMemberUid == request.auth.uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
           && request.resource.data.name is string
@@ -51,6 +71,22 @@ service cloud.firestore {
 
       match /items/{itemId} {
         allow read, create, update, delete: if roomIsMember(roomId);
+      }
+
+      // A member's name and last-seen heartbeat are readable by the two room
+      // members. Users can write only their own profile; only the owner can
+      // remove another member's profile during a kick.
+      match /members/{memberUid} {
+        allow read: if roomIsMember(roomId);
+        allow create, update: if roomIsMember(roomId)
+          && request.auth.uid == memberUid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.nickname is string
+          && request.resource.data.nickname.size() <= 28
+          && request.resource.data.lastSeenAt == request.time
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.keys().hasOnly(['uid', 'nickname', 'lastSeenAt', 'updatedAt']);
+        allow delete: if roomIsOwner(roomId);
       }
     }
 

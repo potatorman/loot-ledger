@@ -90,10 +90,10 @@
 .finder-note{font-size:10px;line-height:1.6;color:#7f8ba2;padding:0 2px}
 .finder-note strong{color:#b4a6ff}
 .market-finder .market-head{padding:16px 18px}
-@media(max-width:1150px){.app-market-header{gap:12px}.app-market-header .brand-icon{width:38px;height:38px}.app-market-header .brand{font-size:20px}.top-market-tools{max-width:520px}.app-market-header .header-right{gap:6px}.app-market-header .player-pill{display:none}}
+@media(max-width:1150px){.app-market-header{gap:12px}.app-market-header .brand-icon{width:38px;height:38px}.app-market-header .brand{font-size:20px}.top-market-tools{max-width:520px}.app-market-header .header-right{gap:6px}.app-market-header .player-pill:not(.member-count-pill){display:none}}
 @media(max-width:900px){.app-market-header{height:auto;flex-wrap:wrap;gap:10px 14px}.top-market-tools{order:3;flex:1 1 100%;max-width:none}.app-market-header .header-right{margin-left:auto}}
 @media(max-width:820px){.finder-results{padding:12px}.offer-row{grid-template-columns:minmax(0,1fr) minmax(90px,.65fr) minmax(90px,.65fr)}.offer-row .open-shop-btn{grid-column:1/-1;width:100%}}
-@media(max-width:680px){.app-market-header{padding:10px 13px;gap:10px}.app-market-header .brand{flex:0 0 auto}.app-market-header .brand span{font-size:18px}.top-market-tools{order:3;flex-basis:100%;gap:7px}.market-global-search{padding-top:11px;padding-bottom:11px}.mode-label{display:none}.market-mode{width:88px;flex-basis:88px;padding:11px 8px}.app-market-header .sync-pill{font-size:10px;padding:7px 9px}.app-market-header .header-right{margin-left:auto}.app-market-header .header-title-small{display:none}.app-market-header #shareBtn{padding:9px 11px}.finder-results{padding:11px;gap:12px}.finder-group-head{padding:11px}.recommendations{padding:9px;gap:7px}.recommendation{padding:10px;gap:7px}.recommendation-price{font-size:16px}.offer-list{padding:0 9px 9px}.offer-row{grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;padding:10px}.offer-shop{grid-column:1/-1}.offer-row .open-shop-btn{grid-column:1/-1}.offers-head{padding:10px 10px 7px}.offer-count{font-size:9px}.finder-item-title strong{font-size:12px}}
+@media(max-width:680px){.app-market-header .member-count-pill{display:flex}.app-market-header{padding:10px 13px;gap:10px}.app-market-header .brand{flex:0 0 auto}.app-market-header .brand span{font-size:18px}.top-market-tools{order:3;flex-basis:100%;gap:7px}.market-global-search{padding-top:11px;padding-bottom:11px}.mode-label{display:none}.market-mode{width:88px;flex-basis:88px;padding:11px 8px}.app-market-header .sync-pill{font-size:10px;padding:7px 9px}.app-market-header .header-right{margin-left:auto}.app-market-header .header-title-small{display:none}.app-market-header #shareBtn{padding:9px 11px}.finder-results{padding:11px;gap:12px}.finder-group-head{padding:11px}.recommendations{padding:9px;gap:7px}.recommendation{padding:10px;gap:7px}.recommendation-price{font-size:16px}.offer-list{padding:0 9px 9px}.offer-row{grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;padding:10px}.offer-shop{grid-column:1/-1}.offer-row .open-shop-btn{grid-column:1/-1}.offers-head{padding:10px 10px 7px}.offer-count{font-size:9px}.finder-item-title strong{font-size:12px}}
 @media(max-width:430px){.app-market-header .brand{gap:8px}.app-market-header .brand-icon{width:35px;height:35px}.app-market-header .brand span{font-size:16px}.app-market-header .sync-pill{max-width:105px;overflow:hidden}.market-mode{width:78px;flex-basis:78px;font-size:11px}.autocomplete-menu{min-width:0}.recommendation-price{font-size:15px}}
 
 
@@ -117,6 +117,22 @@
 .emoji-no-results{grid-column:1/-1;text-align:center;color:#8995aa;font-size:12px;padding:20px 8px}
 .emoji-picker-hint{display:block;margin-top:9px;color:#7f8aa0;font-size:10px}
 @media(max-width:430px){.emoji-input-row{align-items:stretch;flex-direction:column}.emoji-toggle{width:100%}.emoji-picker-toolbar{align-items:stretch;flex-direction:column}.emoji-picker-toolbar input{width:100%}.emoji-grid{grid-template-columns:repeat(7,minmax(0,1fr))}}
+
+
+/* Shared room roster and online indicator */
+.member-count-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid #30394b;border-radius:99px;background:#151b27;color:#c5cddd;padding:8px 11px;font-size:11px;white-space:nowrap;cursor:pointer;flex-shrink:0}
+.member-count-pill:hover{background:#20283a;border-color:#53467f;color:white}
+.member-status-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 3px #ff7e9018;flex:0 0 9px}
+.member-status-dot.online{background:var(--green);box-shadow:0 0 9px #57d6a055}
+.member-roster-list{display:grid;gap:8px;margin:16px 0 12px}
+.member-roster-row{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid #30394d;background:#111722;border-radius:12px;min-width:0}
+.member-roster-row .member-status-dot{margin-left:2px}
+.member-roster-info{flex:1;min-width:0}
+.member-roster-name{font-size:13px;font-weight:800;overflow-wrap:anywhere;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.member-roster-meta{font-size:10px;color:#8e9ab0;margin-top:3px}
+.member-role-badge{font-size:9px;font-weight:850;letter-spacing:.06em;text-transform:uppercase;border:1px solid #463b6c;background:#29233e;color:#c8bcff;border-radius:99px;padding:3px 6px}
+.member-kick-btn{padding:7px 10px;font-size:11px;flex:0 0 auto}
+@media(max-width:430px){.member-count-pill{padding:7px 8px;font-size:10px;gap:6px}.member-status-dot{width:8px;height:8px;flex-basis:8px}.member-kick-btn{padding:7px 8px}}
 
 </style>
 </head>
@@ -181,7 +197,7 @@
       <label class="mode-label" for="marketMode">Mode</label>
       <select class="market-mode" id="marketMode" aria-label="Buy or sell mode"><option value="buy">Buy</option><option value="sell">Sell</option></select>
     </div>
-    <div class="header-right"><div id="syncPill" class="sync-pill"><span class="status-dot"></span><span>Syncing…</span></div><div id="playerPill" class="player-pill">Player</div><button id="shareBtn" class="primary">↗ <span class="header-title-small">Invite friend</span></button></div>
+    <div class="header-right"><div id="syncPill" class="sync-pill"><span class="status-dot"></span><span>Syncing…</span></div><button id="onlineMembersBtn" class="player-pill member-count-pill" type="button" aria-haspopup="dialog" aria-label="View room members" title="View room members"><span id="onlineCountDot" class="member-status-dot online" aria-hidden="true"></span><span id="onlineCountLabel">1 online</span></button><button id="shareBtn" class="primary">↗ <span class="header-title-small">Invite friend</span></button></div>
   </header>
   <div class="workspace">
     <aside class="sidebar">
@@ -227,6 +243,10 @@ const STORAGE_ROOM = "lootLedger.activeRoom.v1";
 let firebaseApp = null, auth = null, db = null, currentUser = null;
 let currentRoomId = null, currentRoomData = null, currentShopId = null, nickname = localStorage.getItem(STORAGE_NAME) || "Player";
 let shops = [], items = [], unsubscribers = [], fromCache = true, pendingWrites = false, connectionError = "";
+let memberProfiles = {};
+let presenceHeartbeatTimer = null, presenceRefreshTimer = null, presenceWriteBusy = false, accessRevokedHandled = false;
+const PRESENCE_HEARTBEAT_MS = 30000;
+const PRESENCE_ONLINE_WINDOW_MS = 75000;
 let modalCleanup = null;
 let marketSuggestionIndex = -1;
 
@@ -355,9 +375,10 @@ async function connectWithConfig(config) {
   }
 }
 function updatePlayerLabels() {
-  $("lobbyPlayer").textContent = nickname;
-  $("playerPill").textContent = nickname;
+  const lobbyPlayer = $("lobbyPlayer");
+  if (lobbyPlayer) lobbyPlayer.textContent = nickname;
   $("nicknameInput").value = nickname;
+  renderOnlineMembers();
 }
 function updateSyncStatus() {
   const offline = !navigator.onLine;
@@ -367,8 +388,9 @@ function updateSyncStatus() {
     node.innerHTML = `<span class="status-dot ${offline || connectionError ? "offline" : ""}"></span><span>${escapeHtml(label)}</span>`;
   }
 }
-window.addEventListener("online", () => { connectionError = ""; updateSyncStatus(); });
-window.addEventListener("offline", updateSyncStatus);
+window.addEventListener("online", () => { connectionError = ""; updateSyncStatus(); renderOnlineMembers(); syncCurrentMemberProfile(); });
+window.addEventListener("offline", () => { updateSyncStatus(); renderOnlineMembers(); });
+window.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") syncCurrentMemberProfile(); });
 
 async function handleRoomOnStart() {
   const params = new URLSearchParams(location.search);
@@ -426,8 +448,8 @@ async function joinRoom(roomId, inviteCode) {
   toast("Connected to the shared market.", "good");
 }
 async function startRoom(roomId, data) {
-  unsubscribeAll(); currentRoomId = roomId; currentRoomData = data;
-  shops = []; items = []; fromCache = true; pendingWrites = false; connectionError = "";
+  unsubscribeAll(); accessRevokedHandled = false; currentRoomId = roomId; currentRoomData = data;
+  shops = []; items = []; memberProfiles = {}; fromCache = true; pendingWrites = false; connectionError = "";
   localStorage.setItem(STORAGE_ROOM, roomId);
   currentShopId = localStorage.getItem("lootLedger.shop." + roomId) || null;
   showView("workspace"); updatePlayerLabels(); renderAll(); updateSyncStatus();
@@ -435,9 +457,16 @@ async function startRoom(roomId, data) {
   const refreshPending = () => { pendingWrites = roomPending || shopsPending || itemsPending; updateSyncStatus(); };
   unsubscribers.push(onSnapshot(doc(db, "rooms", roomId), { includeMetadataChanges: true }, snapshot => {
     connectionError = "";
-    if (snapshot.exists()) { currentRoomData = snapshot.data(); renderHeaderRoom(); }
+    if (!snapshot.exists()) { handleRoomAccessRevoked(); return; }
+    const freshRoom = snapshot.data();
+    if (freshRoom.ownerUid !== currentUser?.uid && freshRoom.secondMemberUid !== currentUser?.uid) { handleRoomAccessRevoked(); return; }
+    currentRoomData = freshRoom; renderHeaderRoom();
     fromCache = snapshot.metadata.fromCache; roomPending = snapshot.metadata.hasPendingWrites; refreshPending();
-  }, error => { connectionError = error.message; updateSyncStatus(); toast("Room sync error: " + error.message, "bad"); }));
+  }, error => {
+    connectionError = error.message; updateSyncStatus();
+    if (error?.code === "permission-denied") { handleRoomAccessRevoked(); return; }
+    toast("Room sync error: " + error.message, "bad");
+  }));
   unsubscribers.push(onSnapshot(collection(db, "rooms", roomId, "shops"), { includeMetadataChanges: true }, snapshot => {
     connectionError = "";
     shops = snapshot.docs.map(d => ({ id:d.id, ...d.data() })).sort((a,b) => String(a.name||"").localeCompare(String(b.name||"")));
@@ -451,11 +480,128 @@ async function startRoom(roomId, data) {
     fromCache = snapshot.metadata.fromCache; itemsPending = snapshot.metadata.hasPendingWrites;
     renderAll(); refreshPending();
   }, error => { connectionError = error.message; updateSyncStatus(); toast("Item sync error: " + error.message, "bad"); }));
+  // Member profiles double as heartbeat records. A member is online while its last
+  // server timestamp is recent; stale records remain available to show offline users.
+  unsubscribers.push(onSnapshot(collection(db, "rooms", roomId, "members"), { includeMetadataChanges: true }, snapshot => {
+    memberProfiles = {};
+    snapshot.docs.forEach(memberDoc => { memberProfiles[memberDoc.id] = { uid: memberDoc.id, ...memberDoc.data() }; });
+    renderOnlineMembers();
+    if ($("memberRosterList")) renderMemberRosterRows();
+  }, error => {
+    // Older rulesets won't allow the new member profile collection. Keep the market
+    // usable and explain the rules update instead of treating this as a kick.
+    connectionError = error.message; updateSyncStatus();
+    if (error?.code === "permission-denied") toast("Publish the updated firestore.rules to enable the room member list and owner-only kick.", "bad");
+    else toast("Member list sync error: " + error.message, "bad");
+  }));
+  startPresenceHeartbeat();
+  presenceRefreshTimer = setInterval(() => { renderOnlineMembers(); if ($("memberRosterList")) renderMemberRosterRows(); }, 5000);
   renderHeaderRoom();
 }
-function unsubscribeAll() { unsubscribers.forEach(fn => { try{fn();}catch{} }); unsubscribers = []; }
+function unsubscribeAll() {
+  unsubscribers.forEach(fn => { try{fn();}catch{} }); unsubscribers = [];
+  if (presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+  if (presenceRefreshTimer) clearInterval(presenceRefreshTimer);
+  presenceHeartbeatTimer = null; presenceRefreshTimer = null; presenceWriteBusy = false;
+  memberProfiles = {};
+}
 function renderHeaderRoom() {
   $("crumbShop").textContent = shops.find(s=>s.id===currentShopId)?.name || "Select a shop";
+  renderOnlineMembers();
+}
+function roomMemberIds() {
+  if (!currentRoomData) return [];
+  return [currentRoomData.ownerUid, currentRoomData.secondMemberUid].filter((uid, index, list) => typeof uid === "string" && uid && list.indexOf(uid) === index);
+}
+function millisFromTimestamp(value) {
+  try {
+    if (value && typeof value.toMillis === "function") return value.toMillis();
+    if (value && typeof value.toDate === "function") return value.toDate().getTime();
+    if (value instanceof Date) return value.getTime();
+    if (typeof value === "number") return value;
+    const parsed = new Date(value).getTime(); return Number.isFinite(parsed) ? parsed : null;
+  } catch { return null; }
+}
+function memberIsOnline(uid) {
+  if (!roomMemberIds().includes(uid)) return false;
+  if (uid === currentUser?.uid && !navigator.onLine) return false;
+  const stamp = millisFromTimestamp(memberProfiles[uid]?.lastSeenAt);
+  if (stamp == null) return uid === currentUser?.uid && navigator.onLine;
+  const age = Date.now() - stamp;
+  return age >= -10000 && age <= PRESENCE_ONLINE_WINDOW_MS;
+}
+function memberDisplayName(uid) {
+  const savedName = String(memberProfiles[uid]?.nickname || "").trim();
+  if (savedName) return savedName;
+  if (uid === currentRoomData?.ownerUid) return "Room owner";
+  if (uid === currentUser?.uid) return nickname;
+  return "Friend";
+}
+function renderOnlineMembers() {
+  const countLabel = $("onlineCountLabel"), countDot = $("onlineCountDot");
+  if (!countLabel || !countDot) return;
+  const ids = roomMemberIds();
+  const onlineCount = ids.filter(memberIsOnline).length;
+  countLabel.textContent = `${onlineCount} online`;
+  countDot.classList.toggle("online", onlineCount > 0);
+  const btn = $("onlineMembersBtn");
+  if (btn) btn.setAttribute("aria-label", `View room members; ${onlineCount} online, ${ids.length} total`);
+}
+function renderMemberRosterRows() {
+  const root = $("memberRosterList"); if (!root) return;
+  const ids = roomMemberIds();
+  if (!ids.length) {
+    root.innerHTML = '<div class="notice">No room members are available. Check your connection and room access.</div>';
+    return;
+  }
+  root.innerHTML = ids.map(uid => {
+    const online = memberIsOnline(uid);
+    const isOwner = uid === currentRoomData?.ownerUid;
+    const canKick = currentUser?.uid === currentRoomData?.ownerUid && !isOwner && uid === currentRoomData?.secondMemberUid;
+    const role = isOwner ? '<span class="member-role-badge">Owner</span>' : '<span class="member-role-badge">Member</span>';
+    const kick = canKick ? `<button type="button" class="danger member-kick-btn" data-kick-uid="${escapeHtml(uid)}">Kick</button>` : '';
+    return `<div class="member-roster-row"><span class="member-status-dot ${online ? "online" : ""}" title="${online ? "Online" : "Offline"}" aria-label="${online ? "Online" : "Offline"}"></span><div class="member-roster-info"><div class="member-roster-name">${escapeHtml(memberDisplayName(uid))}${role}${uid === currentUser?.uid ? '<span class="muted small">You</span>' : ''}</div><div class="member-roster-meta">${online ? "Online now" : "Offline"}${memberProfiles[uid]?.lastSeenAt ? " · Last seen " + escapeHtml(timeAgo(memberProfiles[uid].lastSeenAt)) : " · Not seen on this version yet"}</div></div>${kick}</div>`;
+  }).join("");
+}
+function showRoomMembers() {
+  openModal("ROOM MEMBERS", `<h2 id="modalTitle">People in this room</h2><p>Green means the app has received a recent heartbeat. Red means no recent heartbeat, so the member is shown as offline. Status can take up to about a minute to change after someone closes their browser.</p><div id="memberRosterList" class="member-roster-list"></div><div class="notice">Only the room owner can kick the other member. Kicking them removes their access and rotates the invite link, so an old invite won't work.</div><div class="modal-actions"><button type="button" id="cancelModal" class="ghost">Close</button></div>`);
+  $("cancelModal").addEventListener("click", closeModal);
+  $("memberRosterList").addEventListener("click", event => {
+    const btn = event.target.closest("[data-kick-uid]");
+    if (btn) kickRoomMember(btn.dataset.kickUid);
+  });
+  renderMemberRosterRows();
+}
+async function syncCurrentMemberProfile() {
+  if (!db || !currentUser || !currentRoomId || !navigator.onLine || presenceWriteBusy || !roomMemberIds().includes(currentUser.uid)) return;
+  presenceWriteBusy = true;
+  const roomId = currentRoomId, uid = currentUser.uid;
+  try {
+    await setDoc(doc(db, "rooms", roomId, "members", uid), {
+      uid, nickname: String(nickname || "Player").trim().slice(0, 28) || "Player",
+      lastSeenAt: serverTimestamp(), updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    if (error?.code === "permission-denied") console.warn("Member presence write was denied. Check the updated Firestore rules.", error);
+    else console.debug("Member heartbeat failed; it will retry.", error);
+  } finally {
+    presenceWriteBusy = false;
+  }
+}
+function startPresenceHeartbeat() {
+  if (presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+  syncCurrentMemberProfile();
+  presenceHeartbeatTimer = setInterval(syncCurrentMemberProfile, PRESENCE_HEARTBEAT_MS);
+}
+function handleRoomAccessRevoked() {
+  if (accessRevokedHandled || !currentRoomId) return;
+  accessRevokedHandled = true;
+  unsubscribeAll();
+  currentRoomId = null; currentRoomData = null; currentShopId = null; shops = []; items = [];
+  localStorage.removeItem(STORAGE_ROOM);
+  closeModal(); showView("lobby"); updateSyncStatus();
+  showError("lobbyError", "You no longer have access to that room. The owner may have removed you; ask them for a fresh invite link.");
+  toast("Room access was removed. Ask the owner for a new invite link.", "bad");
 }
 function timeAgo(value) {
   if (!value) return "No edits yet";
@@ -846,8 +992,48 @@ function exportCSV() {
   const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=(shop.name||"shop").replace(/[^a-z0-9-_]+/gi,"-").toLowerCase()+"-prices.csv";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);toast("CSV export downloaded.","good");
 }
 function promptChangeName() {
-  openModal("PLAYER PROFILE", `<h2 id="modalTitle">Change display name</h2><p>This name is shown next to the last price edit you made.</p><form id="nameForm"><div class="field"><label for="newNickname">Display name</label><input id="newNickname" maxlength="28" required value="${escapeHtml(nickname)}"></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Save name</button></div></form>`);
-  $("cancelModal").addEventListener("click",closeModal);$("nameForm").addEventListener("submit",event=>{event.preventDefault();nickname=$("newNickname").value.trim().slice(0,28)||"Player";localStorage.setItem(STORAGE_NAME,nickname);updatePlayerLabels();closeModal();toast("Display name updated.","good");});
+  openModal("PLAYER PROFILE", `<h2 id="modalTitle">Change display name</h2><p>Your name will be shown in the room member list and beside price edits.</p><form id="nameForm"><div class="field"><label for="newNickname">Display name</label><input id="newNickname" maxlength="28" required value="${escapeHtml(nickname)}"></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">Save name</button></div></form>`);
+  $("cancelModal").addEventListener("click",closeModal);
+  $("nameForm").addEventListener("submit",event=>{
+    event.preventDefault();
+    nickname=$("newNickname").value.trim().slice(0,28)||"Player";
+    localStorage.setItem(STORAGE_NAME,nickname);
+    if (currentUser && roomMemberIds().includes(currentUser.uid)) {
+      memberProfiles[currentUser.uid] = { ...(memberProfiles[currentUser.uid] || {}), uid: currentUser.uid, nickname };
+    }
+    updatePlayerLabels(); closeModal();
+    syncCurrentMemberProfile(); renderOnlineMembers(); renderMemberRosterRows();
+    toast(navigator.onLine ? "Display name updated." : "Display name updated locally; it will sync when you reconnect.","good");
+  });
+}
+async function kickRoomMember(uid) {
+  if (!currentRoomId || currentUser?.uid !== currentRoomData?.ownerUid) {
+    toast("Only the room owner can kick a member.", "bad"); return;
+  }
+  if (!uid || uid === currentRoomData.ownerUid || uid !== currentRoomData.secondMemberUid) {
+    toast("That member cannot be kicked from this room.", "bad"); return;
+  }
+  const kickedName = memberDisplayName(uid);
+  if (!confirm(`Kick ${kickedName} from this room? They will lose access, and the current invite link will be replaced.`)) return;
+  const roomId = currentRoomId;
+  const newInviteCode = randomKey();
+  try {
+    await updateDoc(doc(db, "rooms", roomId), {
+      secondMemberUid: null,
+      inviteCode: newInviteCode,
+      joinProof: null,
+      joinedAt: null,
+      kickedUid: uid,
+      kickedAt: serverTimestamp()
+    });
+    currentRoomData = { ...currentRoomData, secondMemberUid: null, inviteCode: newInviteCode, joinProof: null, joinedAt: null, kickedUid: uid, kickedAt: new Date() };
+    try { await deleteDoc(doc(db, "rooms", roomId, "members", uid)); }
+    catch (profileError) { console.warn("Member profile cleanup failed; access is already revoked by the room document.", profileError); }
+    renderOnlineMembers(); renderMemberRosterRows();
+    toast(`${kickedName} was removed. Share a new invite link if you want to invite someone else.`, "good");
+  } catch (error) {
+    toast("Could not kick member: " + (error?.message || "unknown error") + ". Make sure the updated firestore.rules are published.", "bad");
+  }
 }
 function showRoomInfo() {
   const invite=currentRoomData?.inviteCode ? buildInviteUrl() : "Invite is loading…";
@@ -887,7 +1073,7 @@ $("marketMode").addEventListener("change",renderMarketFinder);
 $("clearMarketSearchBtn").addEventListener("click",()=>{$("marketSearchInput").value="";renderMarketFinder();renderMarketSuggestions(true);$("marketSearchInput").focus();});
 document.addEventListener("click",event=>{if(!event.target.closest(".top-market-tools"))hideMarketSuggestions();});
 $("mobileShopSelect").addEventListener("change",event=>selectShop(event.target.value));
-$("shareBtn").addEventListener("click",shareInvite);$("exportBtn").addEventListener("click",exportCSV);$("changeNameBtn").addEventListener("click",promptChangeName);$("roomInfoBtn").addEventListener("click",showRoomInfo);$("switchRoomBtn").addEventListener("click",switchRoom);
+$("onlineMembersBtn").addEventListener("click",showRoomMembers);$("shareBtn").addEventListener("click",shareInvite);$("exportBtn").addEventListener("click",exportCSV);$("changeNameBtn").addEventListener("click",promptChangeName);$("roomInfoBtn").addEventListener("click",showRoomInfo);$("switchRoomBtn").addEventListener("click",switchRoom);
 $("modalCloseTop").addEventListener("click",closeModal);$("modalLayer").addEventListener("click",event=>{if(event.target===$("modalLayer"))closeModal();});window.addEventListener("keydown",event=>{if(event.key==="Escape"){const picker=$("itemEmojiPicker");if(picker&&!picker.classList.contains("hidden")){picker.classList.add("hidden");$("itemEmojiToggle")?.setAttribute("aria-expanded","false");event.preventDefault();}else closeModal();}});
 
 // Pre-fill saved settings, then reconnect this browser to its room if possible.
