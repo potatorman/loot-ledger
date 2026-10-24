@@ -148,7 +148,7 @@
 </style>
 </head>
 <body>
-<section id="setupScreen" class="setup-wrap">
+<section id="setupScreen" class="setup-wrap hidden">
   <div class="setup-top">
     <div class="brand"><div class="brand-icon">✦</div><span>Loot Ledger</span></div>
     <div class="eyebrow">Private game market</div>
@@ -182,7 +182,7 @@
   </div>
 </section>
 
-<section id="lobbyScreen" class="hidden">
+<section id="lobbyScreen">
   <header class="app-header"><div class="brand"><div class="brand-icon">✦</div><span>Loot Ledger</span></div><div class="header-right"><div id="lobbySync" class="sync-pill"><span class="status-dot"></span><span>Connecting…</span></div></div></header>
   <div class="room-gate-wrap"><div class="card room-gate">
     <div class="eyebrow">Private game market</div><h1>Welcome to Loot Ledger</h1><p class="muted" style="font-size:13px;line-height:1.75;max-width:650px">Create a private market for your game, or join your friend's room. The room name helps identify it; the room ID and password control access. Only two members can share a room.</p>
@@ -196,19 +196,19 @@
         <div class="field"><label for="createRoomName">Room name</label><input id="createRoomName" type="text" maxlength="80" placeholder="e.g. My Game Market" autocomplete="off"></div>
         <div class="field"><label for="createRoomPassword">Room password</label><input id="createRoomPassword" type="password" minlength="8" maxlength="128" placeholder="At least 8 characters" autocomplete="new-password"></div>
         <div class="field"><label for="createRoomPasswordConfirm">Confirm room password</label><input id="createRoomPasswordConfirm" type="password" minlength="8" maxlength="128" placeholder="Type it again" autocomplete="new-password"><span class="small-hint">Use a strong password you can share privately with your friend. It is stored as a hash, not as plain text.</span></div>
-        <button id="createRoomBtn" class="primary" style="width:100%;margin-top:16px">Create room →</button>
+        <button id="createRoomBtn" class="primary" style="width:100%;margin-top:16px" disabled>Create room →</button>
       </div>
       <div class="gate-option">
         <div style="font-size:25px;margin-bottom:12px">↗</div><h3>Join an existing room</h3><p>Ask the owner for the room ID and password, or open their private invite link and enter the password.</p>
         <div class="field"><label for="manualRoomId">Room ID</label><input id="manualRoomId" type="text" placeholder="Paste the room ID" spellcheck="false" autocomplete="off"></div>
         <div class="field"><label for="manualRoomPassword">Room password</label><input id="manualRoomPassword" type="password" maxlength="128" placeholder="Enter the room password" autocomplete="current-password"></div>
         <span class="small-hint">If you opened an invite link, the room ID is filled in automatically. Keep the invite link private and ask the owner for the password separately.</span>
-        <button id="joinManualBtn" class="secondary" style="width:100%;margin-top:16px">Join room →</button>
+        <button id="joinManualBtn" class="secondary" style="width:100%;margin-top:16px" disabled>Join room →</button>
       </div>
     </div>
     <div id="lobbyError" class="error-text"></div>
     <div id="pendingInviteHint" class="room-login-hint hidden">Invite link detected. Enter the room password to continue.</div>
-    <div class="between" style="margin-top:20px;flex-wrap:wrap"><span class="muted small">Free-tier setup · Room data is protected by Firestore rules</span><button id="backSetupBtn" class="ghost">Connection setup</button></div>
+    <div class="between" style="margin-top:20px;flex-wrap:wrap"><span class="muted small">Free-tier setup · Room data is protected by Firestore rules</span><button id="backSetupBtn" class="ghost">Retry connection</button></div>
   </div></div>
 </section>
 
@@ -260,6 +260,19 @@
 <div id="toastStack" class="toast-stack" aria-live="polite"></div>
 
 <script src="./firebase-config.js"></script>
+<script>
+// Bundled fallback config so first-time and incognito visitors do not need localStorage.
+if (!window.LOOT_LEDGER_FIREBASE_CONFIG || !window.LOOT_LEDGER_FIREBASE_CONFIG.projectId) {
+  window.LOOT_LEDGER_FIREBASE_CONFIG = {
+  "apiKey": "AIzaSyBi55-UwSiPsAsGgqFlxU-Luxp3xjLBbBU",
+  "authDomain": "loot-ledger-330b2.firebaseapp.com",
+  "projectId": "loot-ledger-330b2",
+  "storageBucket": "loot-ledger-330b2.firebasestorage.app",
+  "messagingSenderId": "292590800003",
+  "appId": "1:292590800003:web:264b5479740011d9efdfb6"
+};
+}
+</script>
 <script type="module">
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
@@ -269,6 +282,8 @@ const $ = (id) => document.getElementById(id);
 const STORAGE_CONFIG = "lootLedger.firebaseConfig.v1";
 const STORAGE_NAME = "lootLedger.nickname.v1";
 const STORAGE_ROOM = "lootLedger.activeRoom.v1";
+const STORAGE_ROOM_PASSWORDS = "lootLedger.roomPasswords.v1";
+let backendReady = false;
 let firebaseApp = null, auth = null, db = null, currentUser = null;
 let currentRoomId = null, currentRoomData = null, currentShopId = null, nickname = localStorage.getItem(STORAGE_NAME) || "Player";
 let shops = [], items = [], unsubscribers = [], fromCache = true, pendingWrites = false, connectionError = "";
@@ -361,6 +376,107 @@ async function hashRoomPassword(roomId, password) {
   const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: encoder.encode(`loot-ledger-room-v1:${roomId}`), iterations: 120000, hash: "SHA-256" }, material, 256);
   return Array.from(new Uint8Array(bits), byte => byte.toString(16).padStart(2,"0")).join("");
 }
+
+function readRoomPasswordMap() {
+  try {
+    const value = JSON.parse(localStorage.getItem(STORAGE_ROOM_PASSWORDS) || "{}");
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  } catch { return {}; }
+}
+function getRememberedRoomPassword(roomId = currentRoomId) {
+  if (!roomId) return "";
+  const value = readRoomPasswordMap()[roomId];
+  return typeof value === "string" ? value : "";
+}
+function rememberRoomPassword(roomId, password) {
+  if (!roomId || !password) return;
+  const passwords = readRoomPasswordMap();
+  passwords[roomId] = String(password).trim();
+  try { localStorage.setItem(STORAGE_ROOM_PASSWORDS, JSON.stringify(passwords)); }
+  catch (error) { console.warn("Could not remember the room password in this browser", error); }
+}
+function forgetRememberedRoomPassword(roomId) {
+  if (!roomId) return;
+  const passwords = readRoomPasswordMap();
+  delete passwords[roomId];
+  try { localStorage.setItem(STORAGE_ROOM_PASSWORDS, JSON.stringify(passwords)); } catch {}
+}
+function setBackendControlsEnabled(enabled) {
+  backendReady = !!enabled;
+  if ($("createRoomBtn")) $("createRoomBtn").disabled = !backendReady;
+  if ($("joinManualBtn")) $("joinManualBtn").disabled = !backendReady;
+  if ($("backSetupBtn")) $("backSetupBtn").disabled = false;
+}
+function roomAccessFieldsMarkup() {
+  const hasPassword = !!currentRoomData?.roomPasswordHash;
+  const remembered = getRememberedRoomPassword(currentRoomId);
+  return `<div class="field"><label for="roomAccessId">Room ID</label><div class="row"><input id="roomAccessId" readonly value="${escapeHtml(currentRoomId || "")}" style="flex:1;min-width:0"><button type="button" class="secondary" id="copyRoomIdBtn">Copy ID</button></div></div>
+  <div class="field"><label for="roomAccessPassword">Room password</label><div class="row"><input id="roomAccessPassword" type="password" readonly value="${escapeHtml(remembered)}" placeholder="${hasPassword ? "Not saved on this device" : "No password set"}" style="flex:1;min-width:0"><button type="button" class="secondary" id="toggleRoomPasswordBtn" ${hasPassword ? "" : "disabled"}>Show</button><button type="button" class="secondary" id="copyRoomPasswordBtn" ${hasPassword ? "" : "disabled"}>Copy</button></div><span class="small muted">The database stores only a password hash. When you create, join, or set a password, this browser can remember the password locally for easy sharing; it is not uploaded as plain text.</span></div>`;
+}
+async function passwordForRoomControls() {
+  if (!currentRoomData?.roomPasswordHash) throw new Error("This room has no password set yet. The owner can set one below.");
+  let password = getRememberedRoomPassword(currentRoomId);
+  if (password) {
+    const rememberedHash = await hashRoomPassword(currentRoomId, password);
+    if (rememberedHash === currentRoomData.roomPasswordHash) return password;
+    // The owner may have changed the password from another browser; never reveal a stale one.
+    forgetRememberedRoomPassword(currentRoomId);
+    password = "";
+  }
+  const entered = prompt("Enter the current room password to verify and remember it on this browser:");
+  if (entered === null) return null;
+  if (!entered.trim()) throw new Error("Enter the room password.");
+  const candidateHash = await hashRoomPassword(currentRoomId, entered);
+  if (candidateHash !== currentRoomData.roomPasswordHash) throw new Error("That password didn't match this room's saved password hash.");
+  password = entered.trim();
+  rememberRoomPassword(currentRoomId, password);
+  return password;
+}
+function wireRoomAccessControls() {
+  const copyIdBtn = $("copyRoomIdBtn");
+  if (copyIdBtn) copyIdBtn.addEventListener("click", async () => {
+    await copyText(currentRoomId || "", "Room ID copied.");
+  });
+  const toggleBtn = $("toggleRoomPasswordBtn");
+  if (toggleBtn) toggleBtn.addEventListener("click", async () => {
+    const field = $("roomAccessPassword");
+    if (!field || !currentRoomData?.roomPasswordHash) return;
+    if (field.type === "text") {
+      field.type = "password";
+      toggleBtn.textContent = "Show";
+      return;
+    }
+    try {
+      const password = await passwordForRoomControls();
+      if (password === null) return;
+      field.value = password;
+      field.type = "text";
+      toggleBtn.textContent = "Hide";
+    } catch (error) { toast(error.message || "Could not reveal the room password.", "bad"); }
+  });
+  const copyPasswordBtn = $("copyRoomPasswordBtn");
+  if (copyPasswordBtn) copyPasswordBtn.addEventListener("click", async () => {
+    try {
+      const password = await passwordForRoomControls();
+      if (password === null) return;
+      const field = $("roomAccessPassword");
+      if (field) field.value = password;
+      await copyText(password, "Room password copied.");
+    } catch (error) { toast(error.message || "Could not copy the room password.", "bad"); }
+  });
+}
+async function copyText(value, successMessage) {
+  try {
+    await navigator.clipboard.writeText(String(value));
+    toast(successMessage, "good");
+  } catch {
+    const temp = document.createElement("textarea");
+    temp.value = String(value); temp.style.position = "fixed"; temp.style.opacity = "0";
+    document.body.appendChild(temp); temp.select();
+    const ok = document.execCommand("copy"); temp.remove();
+    if (ok) toast(successMessage, "good"); else toast("Copy failed. Select and copy the text manually.", "bad");
+  }
+}
 function parseFirebaseConfig(input) {
   const result = {};
   const keys = ["apiKey","authDomain","projectId","storageBucket","messagingSenderId","appId","measurementId"];
@@ -380,7 +496,13 @@ async function waitForAuth(authInstance) {
   });
 }
 async function connectWithConfig(config) {
+  backendReady = false;
+  setBackendControlsEnabled(false);
+  connectionError = "";
+  showView("lobby");
   showError("setupError", "");
+  showError("lobbyError", "");
+  if ($("lobbySync")) $("lobbySync").innerHTML = '<span class="status-dot offline"></span><span>Connecting…</span>';
   if (firebaseApp) {
     unsubscribeAll();
     try { await deleteApp(firebaseApp); } catch {}
@@ -401,7 +523,10 @@ async function connectWithConfig(config) {
     let user = await waitForAuth(auth);
     if (!user) user = (await signInAnonymously(auth)).user;
     currentUser = user;
-    nickname = ($("nicknameInput").value || localStorage.getItem(STORAGE_NAME) || "Player").trim().slice(0,28) || "Player";
+    backendReady = true;
+    setBackendControlsEnabled(true);
+    connectionError = "";
+    nickname = (localStorage.getItem(STORAGE_NAME) || "Player").trim().slice(0,28) || "Player";
     localStorage.setItem(STORAGE_NAME, nickname);
     localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
     updatePlayerLabels();
@@ -411,9 +536,13 @@ async function connectWithConfig(config) {
     const message = error?.code === "auth/operation-not-allowed" ? "Anonymous sign-in is not enabled yet. In Firebase Console, open Authentication → Sign-in method and enable Anonymous, then try again." :
       error?.code === "permission-denied" ? "Firestore denied access. Double-check that you published the included firestore.rules and created a Firestore database." :
       (error?.message || "Could not connect. Check the config and your internet connection.");
+    backendReady = false;
+    setBackendControlsEnabled(false);
+    connectionError = message;
     showError("setupError", message);
-    if (firebaseApp) showError("lobbyError", message);
-    showView("setup");
+    showError("lobbyError", message + " The room buttons will unlock once the connection succeeds. Use Retry connection after fixing the Firebase setting.");
+    showView("lobby");
+    updateSyncStatus();
   } finally {
     $("connectBtn").disabled = false; $("connectBtn").textContent = "Save config & connect →";
   }
@@ -475,6 +604,7 @@ function removeInviteKeyFromUrl(roomId) {
   try { const next = new URL(location.href); next.searchParams.set("room", roomId); next.searchParams.delete("key"); history.replaceState({}, "", next); } catch {}
 }
 async function createRoom() {
+  if (!backendReady || !db || !currentUser) { showError("lobbyError", "Loot Ledger is not connected to Firebase yet. Check the message below and press Retry connection."); return; }
   showError("lobbyError", "");
   nickname = ($("lobbyNicknameInput").value || "Player").trim().slice(0,28) || "Player";
   localStorage.setItem(STORAGE_NAME, nickname);
@@ -492,6 +622,7 @@ async function createRoom() {
     const roomPasswordHash = await hashRoomPassword(roomRef.id, roomPassword);
     const room = { ownerUid: currentUser.uid, secondMemberUid: null, inviteCode, roomPasswordHash, name: roomName, createdAt: serverTimestamp() };
     await setDoc(roomRef, room);
+    rememberRoomPassword(roomRef.id, roomPassword);
     $("createRoomPassword").value = "";
     $("createRoomPasswordConfirm").value = "";
     await startRoom(roomRef.id, room);
@@ -1063,14 +1194,18 @@ function buildInviteUrl() {
   const url=new URL(location.href);url.search="";url.searchParams.set("room",currentRoomId);url.searchParams.set("key",currentRoomData.inviteCode);return url.toString();
 }
 async function shareInvite() {
-  try { const invite=buildInviteUrl();
+  try {
+    const invite = buildInviteUrl();
     const passwordNote = currentRoomData?.roomPasswordHash
-      ? "Also send your room password separately. The invite link alone is not enough for a new member to join."
-      : "This older room has no room password configured; the private invite link is the access key. Consider creating a new password-protected room if you want password-based joining.";
-    openModal("PRIVATE INVITE", `<h2 id="modalTitle">Invite your friend</h2><p>This link opens the join screen for your room. Send it only to your friend.</p><div class="link-box" id="inviteLinkText">${escapeHtml(invite)}</div><div class="notice">${escapeHtml(passwordNote)} Once your friend joins, the second member slot is filled and another account cannot join.</div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Close</button><button type="button" class="primary" id="copyInviteBtn">Copy invite link</button></div>`);
-    $("cancelModal").addEventListener("click",closeModal);
-    $("copyInviteBtn").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(invite);toast("Invite link copied.","good");closeModal();}catch{const temp=document.createElement("textarea");temp.value=invite;document.body.appendChild(temp);temp.select();const ok=document.execCommand("copy");temp.remove();if(ok){toast("Invite link copied.","good");closeModal();}else toast("Copy the link manually from the box.","bad");}});
-  } catch(error){toast(error.message,"bad");}
+      ? "Send the room ID and password to your friend privately. The invite link is also included below."
+      : "This older room has no password set. The owner can set one in Room & invite info.";
+    openModal("SHARE ROOM", `<h2 id="modalTitle">Share your room</h2><p>Give your friend the room ID, password, and invite link. Keep these details private.</p>${roomAccessFieldsMarkup()}<div class="field"><label>Invite link</label><div class="link-box" id="inviteLinkText">${escapeHtml(invite)}</div></div><div class="notice">${escapeHtml(passwordNote)} The room password is never stored as plain text in Firestore. If this browser has not remembered it, press Show or Copy and enter it to verify.</div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Close</button><button type="button" class="primary" id="copyInviteBtn">Copy invite link</button></div>`);
+    wireRoomAccessControls();
+    $("cancelModal").addEventListener("click", closeModal);
+    $("copyInviteBtn").addEventListener("click", async () => {
+      await copyText(invite, "Invite link copied.");
+    });
+  } catch (error) { toast(error.message, "bad"); }
 }
 function exportCSV() {
   const shop=activeShop();if(!shop){toast("Choose a shop first.");return;}
@@ -1123,6 +1258,7 @@ async function kickRoomMember(uid) {
       kickedAt: serverTimestamp()
     });
     currentRoomData = { ...currentRoomData, secondMemberUid: null, inviteCode: newInviteCode, roomPasswordHash: newRoomPasswordHash, joinProof: null, passwordProof: null, joinedAt: null, kickedUid: uid, kickedAt: new Date() };
+    rememberRoomPassword(roomId, newPassword);
     try { await deleteDoc(doc(db, "rooms", roomId, "members", uid)); }
     catch (profileError) { console.warn("Member profile cleanup failed; access is already revoked by the room document.", profileError); }
     renderOnlineMembers(); renderMemberRosterRows();
@@ -1132,13 +1268,14 @@ async function kickRoomMember(uid) {
   }
 }
 function showRoomInfo() {
-  const invite=currentRoomData?.inviteCode ? buildInviteUrl() : "Invite is loading…";
+  const invite = currentRoomData?.inviteCode ? buildInviteUrl() : "Invite is loading…";
   const hasRoomPassword = !!currentRoomData?.roomPasswordHash;
   const isOwner = currentUser?.uid === currentRoomData?.ownerUid;
   const passwordAction = isOwner ? `<button id="setRoomPasswordBtn" class="secondary">${hasRoomPassword ? "Change room password" : "Set room password"}</button>` : "";
-  openModal("ROOM INFO", `<h2 id="modalTitle">${escapeHtml(currentRoomData?.name || "Your shared room")}</h2><p>Only the room creator and the one accepted friend can read or change its data.</p><div class="field"><label>Room ID</label><input readonly value="${escapeHtml(currentRoomId||"")}"></div><div class="field"><label>Member status</label><input readonly value="${currentRoomData?.secondMemberUid?"Two members · friend joined":"One member · invite still available"}"></div><div class="field"><label>Room password</label><input readonly value="${hasRoomPassword ? "Password protected" : "Not set (older room)"}"></div><div class="field"><label>Invite link</label><div class="link-box">${escapeHtml(invite)}</div></div><div class="modal-actions"><button id="cancelModal" class="ghost">Close</button>${passwordAction}<button id="copyRoomInvite" class="primary">Copy invite</button></div>`);
-  $("cancelModal").addEventListener("click",closeModal);
-  $("copyRoomInvite").addEventListener("click",async()=>{await shareInvite();});
+  openModal("ROOM INFO", `<h2 id="modalTitle">${escapeHtml(currentRoomData?.name || "Your shared room")}</h2><p>Only the room creator and the one accepted friend can read or change its data.</p>${roomAccessFieldsMarkup()}<div class="field"><label>Member status</label><input readonly value="${currentRoomData?.secondMemberUid ? "Two members · friend joined" : "One member · invite still available"}"></div><div class="field"><label>Invite link</label><div class="link-box">${escapeHtml(invite)}</div></div><div class="modal-actions"><button id="cancelModal" class="ghost">Close</button>${passwordAction}<button id="copyRoomInvite" class="primary">Copy invite</button></div>`);
+  wireRoomAccessControls();
+  $("cancelModal").addEventListener("click", closeModal);
+  $("copyRoomInvite").addEventListener("click", async () => { await shareInvite(); });
   const setPasswordBtn = $("setRoomPasswordBtn");
   if (setPasswordBtn) setPasswordBtn.addEventListener("click", async () => {
     const password = prompt("Set a room password (at least 8 characters). Share it privately with your friend:");
@@ -1148,11 +1285,13 @@ function showRoomInfo() {
     if (confirmPassword === null) return;
     if (password.trim() !== confirmPassword.trim()) { toast("The passwords did not match. Nothing was changed.", "bad"); return; }
     try {
-      const passwordHash = await hashRoomPassword(currentRoomId, password);
+      const normalizedPassword = password.trim();
+      const passwordHash = await hashRoomPassword(currentRoomId, normalizedPassword);
       await updateDoc(doc(db, "rooms", currentRoomId), { roomPasswordHash: passwordHash });
       currentRoomData = { ...currentRoomData, roomPasswordHash: passwordHash };
+      rememberRoomPassword(currentRoomId, normalizedPassword);
       closeModal(); showRoomInfo();
-      toast("Room password saved. New joins now need the password.", "good");
+      toast("Room password saved. It is remembered only in this browser and stored as a hash in Firebase.", "good");
     } catch (error) { toast("Could not update the room password: " + (error?.message || "unknown error"), "bad"); }
   });
 }
@@ -1173,6 +1312,7 @@ $("saveLobbyNicknameBtn").addEventListener("click",()=>{
 });
 $("createRoomBtn").addEventListener("click",createRoom);
 $("joinManualBtn").addEventListener("click",async()=>{
+  if (!backendReady || !db || !currentUser) { showError("lobbyError", "Loot Ledger is not connected to Firebase yet. Check the message below and press Retry connection."); return; }
   showError("lobbyError","");$("joinManualBtn").disabled=true;
   try {
     nickname = ($("lobbyNicknameInput").value || "Player").trim().slice(0,28) || "Player";
@@ -1192,10 +1332,14 @@ $("joinManualBtn").addEventListener("click",async()=>{
       if (!passwordHash) throw new Error("Enter the room password.");
       await joinRoom(roomId, passwordHash);
     }
+    if (password) rememberRoomPassword(roomId, password);
   } catch(error) { showError("lobbyError",error.message||"Could not join. Check the room ID and password."); }
   finally { $("joinManualBtn").disabled=false; }
 });
-$("backSetupBtn").addEventListener("click",()=>{showView("setup");showError("setupError","");});
+$("backSetupBtn").addEventListener("click", async () => {
+  if (!navigator.onLine) { showError("lobbyError", "You're offline. Reconnect to the internet, then retry the Firebase connection."); return; }
+  await connectWithConfig(window.LOOT_LEDGER_FIREBASE_CONFIG);
+});
 $("sidebarAddShop").addEventListener("click",openAddShopDialog);$("sidebarNewShop").addEventListener("click",openAddShopDialog);$("addShopMainBtn").addEventListener("click",openAddShopDialog);
 $("addItemBtn").addEventListener("click",()=>openItemDialog());$("manageShopBtn").addEventListener("click",openShopManageDialog);$("searchInput").addEventListener("input",renderInventory);$("clearSearchBtn").addEventListener("click",()=>{$("searchInput").value="";renderInventory();});
 $("marketSearchInput").addEventListener("input",()=>{marketSuggestionIndex=-1;renderMarketFinder();renderMarketSuggestions(true);});
@@ -1221,19 +1365,29 @@ $("mobileShopSelect").addEventListener("change",event=>selectShop(event.target.v
 $("onlineMembersBtn").addEventListener("click",showRoomMembers);$("shareBtn").addEventListener("click",shareInvite);$("exportBtn").addEventListener("click",exportCSV);$("changeNameBtn").addEventListener("click",promptChangeName);$("roomInfoBtn").addEventListener("click",showRoomInfo);$("switchRoomBtn").addEventListener("click",switchRoom);
 $("modalCloseTop").addEventListener("click",closeModal);$("modalLayer").addEventListener("click",event=>{if(event.target===$("modalLayer"))closeModal();});window.addEventListener("keydown",event=>{if(event.key==="Escape"){const picker=$("itemEmojiPicker");if(picker&&!picker.classList.contains("hidden")){picker.classList.add("hidden");$("itemEmojiToggle")?.setAttribute("aria-expanded","false");event.preventDefault();}else closeModal();}});
 
-// Pre-fill saved settings, then reconnect this browser to its room if possible.
+// Start on Create / Join, then connect using the config bundled with this website.
+// This means a fresh/incognito browser does not need a locally saved config.
 nickname = localStorage.getItem(STORAGE_NAME) || nickname;
-$("nicknameInput").value=nickname;
-const savedConfig = localStorage.getItem(STORAGE_CONFIG);
-if (savedConfig) {
-  try { const config=JSON.parse(savedConfig); if ($("firebaseConfigText")) $("firebaseConfigText").value=Object.entries(config).map(([k,v])=>`${k}: "${v}"`).join(",\n"); await connectWithConfig(config); }
-  catch(error) { console.warn("Saved config could not reconnect",error); showView("setup"); }
-} else if (isFirebaseConfigReady(window.LOOT_LEDGER_FIREBASE_CONFIG)) {
-  // The owner embeds the Firebase web config once in firebase-config.js so normal users
-  // land directly on the Create / Join Room screen instead of pasting app config.
-  try { await connectWithConfig(window.LOOT_LEDGER_FIREBASE_CONFIG); }
-  catch(error) { console.warn("Embedded Firebase config could not connect", error); showView("setup"); }
-} else { showView("setup"); }
+$("nicknameInput").value = nickname;
+setBackendControlsEnabled(false);
+showView("lobby");
+const embeddedConfig = window.LOOT_LEDGER_FIREBASE_CONFIG;
+let fallbackSavedConfig = null;
+try {
+  const rawSavedConfig = localStorage.getItem(STORAGE_CONFIG);
+  if (rawSavedConfig) fallbackSavedConfig = JSON.parse(rawSavedConfig);
+} catch {}
+if (isFirebaseConfigReady(embeddedConfig)) {
+  await connectWithConfig(embeddedConfig);
+} else if (isFirebaseConfigReady(fallbackSavedConfig)) {
+  await connectWithConfig(fallbackSavedConfig);
+} else {
+  const message = "The website's Firebase config is missing. Upload the updated index.html and firebase-config.js from this package, then hard-refresh the page.";
+  connectionError = message;
+  showError("lobbyError", message);
+  setBackendControlsEnabled(false);
+  updateSyncStatus();
+}
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   navigator.serviceWorker.register("./sw.js").catch(error=>console.info("Offline app shell not registered",error));
 }

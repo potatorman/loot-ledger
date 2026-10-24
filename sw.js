@@ -1,4 +1,4 @@
-const CACHE_NAME = "loot-ledger-shell-v6";
+const CACHE_NAME = "loot-ledger-shell-v10";
 const SHELL = ["./", "./index.html", "./manifest.json", "./firebase-config.js"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
