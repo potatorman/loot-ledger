@@ -5,22 +5,34 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function roomHasMember(room, uid) {
+      return room.ownerUid == uid
+        || (room.keys().hasAny(['memberUids'])
+            && room.memberUids is list
+            && room.memberUids.hasAny([uid]))
+        || (!room.keys().hasAny(['memberUids'])
+            && room.keys().hasAny(['secondMemberUid'])
+            && room.secondMemberUid == uid);
+    }
+
     function roomIsMember(roomId) {
       let room = get(/databases/$(database)/documents/rooms/$(roomId)).data;
-      return signedIn() &&
-        (room.ownerUid == request.auth.uid || room.secondMemberUid == request.auth.uid);
+      return signedIn() && roomHasMember(room, request.auth.uid);
     }
 
     function roomIsOwner(roomId) {
-      return signedIn() &&
-        get(/databases/$(database)/documents/rooms/$(roomId)).data.ownerUid == request.auth.uid;
+      return signedIn()
+        && get(/databases/$(database)/documents/rooms/$(roomId)).data.ownerUid == request.auth.uid;
     }
 
     match /rooms/{roomId} {
-      // New rooms have a room name, a random invite key, and a one-way password hash.
       allow create: if signedIn()
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.secondMemberUid == null
+        && request.resource.data.memberUids is list
+        && request.resource.data.memberUids.size() == 1
+        && request.resource.data.memberUids.hasAny([request.auth.uid])
+        && request.resource.data.maxMembers == 25
         && request.resource.data.inviteCode is string
         && request.resource.data.inviteCode.size() >= 32
         && request.resource.data.roomPasswordHash is string
@@ -29,64 +41,106 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.name.size() <= 80;
 
-      allow get: if signedIn() &&
-        (resource.data.ownerUid == request.auth.uid || resource.data.secondMemberUid == request.auth.uid);
+      allow get: if signedIn() && roomHasMember(resource.data, request.auth.uid);
       allow list: if false;
 
       allow update: if signedIn() && (
-        // A friend can claim the empty second slot using either the room password,
-        // or the private invite key plus the room password (for invite links).
+        // Join a current room with a password, or an invite key plus password.
         (
-          resource.data.secondMemberUid == null
-          && request.auth.uid != resource.data.ownerUid
-          && request.resource.data.secondMemberUid == request.auth.uid
+          resource.data.keys().hasAny(['memberUids'])
+          && resource.data.memberUids is list
+          && resource.data.memberUids.size() < 25
+          && !resource.data.memberUids.hasAny([request.auth.uid])
+          && request.resource.data.memberUids is list
+          && request.resource.data.memberUids.size() == resource.data.memberUids.size() + 1
+          && request.resource.data.memberUids.hasAll(resource.data.memberUids)
+          && request.resource.data.memberUids.hasAny([request.auth.uid])
           && request.resource.data.ownerUid == resource.data.ownerUid
           && request.resource.data.inviteCode == resource.data.inviteCode
           && (
-            // Password-only joining: the password hash is the join proof.
             (resource.data.roomPasswordHash is string
               && request.resource.data.joinProof == resource.data.roomPasswordHash)
             ||
-            // Invite-link joining for current password-protected rooms.
             (resource.data.roomPasswordHash is string
               && request.resource.data.joinProof == resource.data.inviteCode
               && request.resource.data.passwordProof == resource.data.roomPasswordHash)
             ||
-            // Backwards compatibility for older rooms created before room passwords existed.
-            (!(resource.data.keys().hasAny(['roomPasswordHash']))
+            (!resource.data.keys().hasAny(['roomPasswordHash'])
               && request.resource.data.joinProof == resource.data.inviteCode)
           )
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['secondMemberUid', 'joinProof', 'passwordProof', 'joinedAt'])
-        ) ||
-        // Only the owner can kick the second member. Both invite key and password are rotated.
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids', 'joinProof', 'passwordProof', 'joinedAt'])
+        )
+        ||
+        // One-time owner migration from the old two-member schema.
         (
           resource.data.ownerUid == request.auth.uid
-          && resource.data.secondMemberUid is string
-          && request.resource.data.secondMemberUid == null
+          && !resource.data.keys().hasAny(['memberUids'])
+          && request.resource.data.memberUids is list
+          && request.resource.data.memberUids.hasAny([resource.data.ownerUid])
+          && request.resource.data.maxMembers == 25
+          && (
+            (resource.data.keys().hasAny(['secondMemberUid'])
+              && resource.data.secondMemberUid is string
+              && request.resource.data.memberUids.size() == 2
+              && request.resource.data.memberUids.hasAny([resource.data.secondMemberUid]))
+            ||
+            ((!resource.data.keys().hasAny(['secondMemberUid'])
+                || !(resource.data.secondMemberUid is string))
+              && request.resource.data.memberUids.size() == 1)
+          )
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids', 'maxMembers'])
+        )
+        ||
+        // The owner can remove exactly one non-owner member and rotate room credentials.
+        (
+          resource.data.ownerUid == request.auth.uid
+          && resource.data.memberUids is list
+          && request.resource.data.memberUids is list
+          && request.resource.data.kickedUid is string
+          && request.resource.data.kickedUid != resource.data.ownerUid
+          && resource.data.memberUids.hasAny([request.resource.data.kickedUid])
+          && !request.resource.data.memberUids.hasAny([request.resource.data.kickedUid])
+          && request.resource.data.memberUids.size() == resource.data.memberUids.size() - 1
+          && request.resource.data.memberUids.hasAny([resource.data.ownerUid])
           && request.resource.data.ownerUid == resource.data.ownerUid
           && request.resource.data.inviteCode is string
           && request.resource.data.inviteCode.size() >= 32
           && request.resource.data.inviteCode != resource.data.inviteCode
           && request.resource.data.roomPasswordHash is string
           && request.resource.data.roomPasswordHash.size() == 64
-          && (!(resource.data.keys().hasAny(['roomPasswordHash'])) || request.resource.data.roomPasswordHash != resource.data.roomPasswordHash)
-          && request.resource.data.kickedUid == resource.data.secondMemberUid
+          && request.resource.data.roomPasswordHash != resource.data.roomPasswordHash
           && request.resource.data.kickedAt == request.time
           && request.resource.data.passwordProof == null
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['secondMemberUid', 'inviteCode', 'joinProof', 'passwordProof', 'joinedAt', 'kickedUid', 'kickedAt', 'roomPasswordHash'])
-        ) ||
-        // Only the owner may set or rotate the room-password hash.
+          && (
+            request.resource.data.secondMemberUid == resource.data.secondMemberUid
+            || (resource.data.secondMemberUid == request.resource.data.kickedUid
+                && request.resource.data.secondMemberUid == null)
+          )
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids', 'secondMemberUid', 'inviteCode', 'joinProof', 'passwordProof', 'joinedAt', 'kickedUid', 'kickedAt', 'roomPasswordHash'])
+        )
+        ||
+        // Any member may clear transient join proofs after a successful join.
+        (
+          roomHasMember(resource.data, request.auth.uid)
+          && request.resource.data.joinProof == null
+          && request.resource.data.passwordProof == null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['joinProof', 'passwordProof'])
+        )
+        ||
+        // The owner may change the room password hash.
         (
           resource.data.ownerUid == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['roomPasswordHash'])
           && request.resource.data.roomPasswordHash is string
           && request.resource.data.roomPasswordHash.size() == 64
-        ) ||
-        // Existing room-name edit permission.
+        )
+        ||
+        // Any existing member may rename the room.
         (
-          (resource.data.ownerUid == request.auth.uid || resource.data.secondMemberUid == request.auth.uid)
+          roomHasMember(resource.data, request.auth.uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
           && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
           && request.resource.data.name.size() <= 80
         )
       );
