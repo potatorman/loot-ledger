@@ -148,6 +148,8 @@
 
 /* Optional shop-owner labels */
 .shop-nav-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:2px}.shop-name{flex:initial}.shop-owner-name{font-size:10px;color:#7f8ba2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}.shop-nav.active .shop-owner-name{color:#b6a9e9}.offer-shop-owner{font-size:10px;color:#a69add;margin-top:2px}.shop-owner-detail{color:#b6a9e9!important}
+
+.quick-price-actions{display:flex;flex-wrap:wrap;gap:7px;margin:-3px 0 14px}.quick-price-actions button,.quick-emoji-btn{background:#202638;border:1px solid #343d53;color:#ccd4e4;border-radius:9px;padding:7px 10px;font-size:11px;font-weight:750}.quick-price-actions button:hover,.quick-emoji-btn:hover{background:#2b3146;border-color:#8e78ed;color:white}.quick-emoji-row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 11px}.quick-emoji-btn{font-size:19px;width:38px;height:38px;padding:3px;display:grid;place-items:center}.inventory-bottom-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px;border-top:1px solid #242b3b}.inventory-bottom-actions .primary{min-width:150px}.csv-import-input{display:none!important}
 </style>
 </head>
 <body>
@@ -251,7 +253,7 @@
         <div class="finder-results" id="marketFinderResults" aria-live="polite"><div class="finder-empty"><div class="empty-emoji">⌕</div><strong>Search every shop</strong><p>Type an item name in the top bar to compare prices across your whole market.</p></div></div>
       </section>
       <section class="table-card">
-        <div class="table-head"><div><div class="table-title">Shop inventory</div><div id="tableSubtitle" class="table-subtitle">Buy and sell prices at a glance</div></div><div class="table-tools"><div class="search-wrap"><span class="search-icon">⌕</span><input id="searchInput" placeholder="Search items…" aria-label="Search items"></div><button id="clearSearchBtn" class="secondary">Clear</button></div></div>
+        <div class="table-head"><div><div class="table-title">Shop inventory</div><div id="tableSubtitle" class="table-subtitle">Buy and sell prices at a glance</div></div><div class="table-tools"><div class="search-wrap"><span class="search-icon">⌕</span><input id="searchInput" placeholder="Search items…" aria-label="Search items"></div><button id="clearSearchBtn" class="secondary">Clear</button><button id="importCsvBtn" class="secondary" title="Import items captured by the screen scanner">⇧ Import scan CSV</button><input id="importCsvInput" class="csv-import-input" type="file" accept=".csv,text/csv" aria-label="Choose scanned items CSV"></div></div>
         <div id="itemsContent"></div>
       </section>
       <div class="footer-note">Changes sync to both members. Offline edits are queued on this browser and sent when it reconnects. If both members edit the same field before syncing, the latest write may win.</div>
@@ -346,6 +348,35 @@ const ITEM_EMOJI_GROUPS = {
     ["🎟️","Ticket"],["🧭","Compass"],["🗺️","Map"],["🏪","Shop"],["📜","Scroll"],["💰","Money bag"],
     ["🧾","Receipt"],["🏺","Vase"],["📚","Books"],["🎒","Bag"],["🪙","Coins"],["🧿","Lucky charm"],
     ["🎵","Music"],["🪄","Magic wand"],["🕯️","Candle"],["⏳","Hourglass"],["🧸","Toy"],["🚪","Door"]
+  ],
+  "Bugs & Critters": [
+    ["🪲","Beetle"],["🐞","Ladybug"],["🪳","Cockroach"],["🦗","Cricket"],["🪰","Fly"],["🦟","Mosquito"],
+    ["🐛","Caterpillar"],["🪱","Worm"],["🦠","Microbe"],["🪼","Jellyfish"],["🪸","Coral"],["🦑","Squid"],
+    ["🦐","Shrimp"],["🦞","Lobster"],["🦀","Crab"],["🦔","Hedgehog"],["🦝","Raccoon"],["🦜","Parrot"],
+    ["🦩","Flamingo"],["🦦","Otter"],["🦥","Sloth"],["🦫","Beaver"],["🦨","Skunk"],["🦡","Badger"]
+  ],
+  "Jars & Containers": [
+    ["🫙","Jar"],["🏺","Clay jar"],["🧴","Bottle"],["🧪","Potion bottle"],["🧫","Culture dish"],["🧬","DNA"],
+    ["🛢️","Oil barrel"],["🪣","Pail"],["🧺","Basket"],["🧳","Chest"],["🪤","Trap"],["🧷","Pin"],
+    ["🪝","Hook"],["🧿","Eye charm"],["🔏","Sealed lock"],["🗃️","Storage box"],["🗄️","Cabinet"],["🧱","Stone block"]
+  ],
+  "Ores & Crafting": [
+    ["🪨","Rock"],["💠","Diamond shape"],["🔶","Orange crystal"],["🔷","Blue crystal"],["🔸","Small orange gem"],
+    ["🔹","Small blue gem"],["🪙","Coin"],["💵","Cash"],["💴","Yen"],["💶","Euro"],["💷","Pound"],["💳","Card"],
+    ["🪓","Chopping axe"],["⚒️","Crafting tools"],["🪚","Saw"],["🧵","String"],["🪢","Rope knot"],["🪡","Sewing needle"],
+    ["🪶","Feather"],["🦷","Tooth"],["🦴","Bone"],["🪵","Log"],["🧿","Magic token"],["🧯","Fire tool"]
+  ],
+  "Fantasy & Loot": [
+    ["🧙‍♂️","Wizard"],["🧝","Elf"],["🧚","Fairy"],["🧛","Vampire"],["🧟","Zombie"],["🧞","Genie"],["🧜","Merperson"],
+    ["👻","Ghost"],["💀","Skull"],["☠️","Poison skull"],["👹","Ogre mask"],["👺","Goblin mask"],["🐲","Dragon head"],
+    ["🪄","Magic wand"],["🔮","Crystal orb"],["📿","Beads"],["🪬","Protective charm"],["🕯️","Magic candle"],["⚱️","Urn"],
+    ["🗡️","Short sword"],["🏹","Longbow"],["🛡️","Tower shield"],["🪬","Relic"],["🗝️","Dungeon key"],["🧭","Compass"]
+  ],
+  "More Food & Plants": [
+    ["🫐","Blueberries"],["🥭","Mango"],["🍍","Pineapple"],["🥥","Coconut"],["🫒","Olive"],["🫚","Ginger"],["🫛","Peas"],
+    ["🧄","Garlic"],["🧅","Onion"],["🥬","Greens"],["🫑","Pepper"],["🌶️","Chili"],["🥜","Peanut"],["🫘","Beans"],
+    ["🍒","Cherry"],["🍑","Peach"],["🍐","Pear"],["🥝","Kiwi"],["🪻","Hyacinth"],["🪴","Plant"],["🌵","Cactus"],
+    ["🌴","Palm tree"],["🍄‍🟫","Brown mushroom"],["🪺","Nest"],["🪹","Empty nest"],["🍯","Honey pot"]
   ]
 };
 const ITEM_EMOJI_OPTIONS = Object.entries(ITEM_EMOJI_GROUPS).flatMap(([category, entries]) => entries.map(([emoji, label]) => ({emoji,label,category})));
@@ -1194,7 +1225,8 @@ function renderInventory() {
     content.innerHTML = `<div class="empty-state"><div class="empty-icon">${search?"⌕":"✦"}</div><h3>${search?"No matching items":"Nothing tracked here yet"}</h3><p>${search?"Try another search term, or clear the filter.":"Add an item and enter the prices you find in-game. You and your friend can update the same row."}</p>${search?'<button class="secondary" id="emptyClearSearch">Clear search</button>':'<button class="primary" id="emptyAddItem">＋ Add first item</button>'}</div>`;
     $("emptyAddItem")?.addEventListener("click",()=>openItemDialog()); $("emptyClearSearch")?.addEventListener("click",()=>{$("searchInput").value="";renderInventory();}); return;
   }
-  content.innerHTML = `<div class="table-scroll"><table><thead><tr><th>Item</th><th>Buy from shop · you pay</th><th>Sell to shop · shop pays you</th><th>Last changed</th><th style="text-align:right">Actions</th></tr></thead><tbody>${visible.map(item=>`<tr><td><div class="item-main"><div class="item-symbol">${escapeHtml(item.icon||"◈")}</div><div><div class="item-name">${escapeHtml(item.name||"Untitled item")}</div><div class="item-notes" title="${escapeHtml(item.notes||"")}">${escapeHtml(item.notes||"No notes")}</div></div></div></td><td><div class="price buy">${escapeHtml(fmtPrice(item.buyPrice, "buy"))}</div></td><td><div class="price sell">${escapeHtml(fmtPrice(item.sellPrice, "sell"))}</div></td><td><div class="update-meta">${escapeHtml(item.updatedBy||"Unknown") }<span>${escapeHtml(timeAgo(item.updatedAt))}</span></div></td><td class="action-cell"><button class="icon-btn" data-edit-id="${escapeHtml(item.id)}" title="Edit item" aria-label="Edit item">✎</button><button class="icon-btn" data-delete-id="${escapeHtml(item.id)}" title="Delete item" aria-label="Delete item">⌫</button></td></tr>`).join("")}</tbody></table></div>`;
+  content.innerHTML = `<div class="table-scroll"><table><thead><tr><th>Item</th><th>Buy from shop · you pay</th><th>Sell to shop · shop pays you</th><th>Last changed</th><th style="text-align:right">Actions</th></tr></thead><tbody>${visible.map(item=>`<tr><td><div class="item-main"><div class="item-symbol">${escapeHtml(item.icon||"◈")}</div><div><div class="item-name">${escapeHtml(item.name||"Untitled item")}</div><div class="item-notes" title="${escapeHtml(item.notes||"")}">${escapeHtml(item.notes||"No notes")}</div></div></div></td><td><div class="price buy">${escapeHtml(fmtPrice(item.buyPrice, "buy"))}</div></td><td><div class="price sell">${escapeHtml(fmtPrice(item.sellPrice, "sell"))}</div></td><td><div class="update-meta">${escapeHtml(item.updatedBy||"Unknown") }<span>${escapeHtml(timeAgo(item.updatedAt))}</span></div></td><td class="action-cell"><button class="icon-btn" data-edit-id="${escapeHtml(item.id)}" title="Edit item" aria-label="Edit item">✎</button><button class="icon-btn" data-delete-id="${escapeHtml(item.id)}" title="Delete item" aria-label="Delete item">⌫</button></td></tr>`).join("")}</tbody></table></div><div class="inventory-bottom-actions"><button class="primary" id="addItemBottomBtn">＋ Add item</button><span class="muted small">${visible.length} item${visible.length===1?"":"s"}</span></div>`;
+  $("addItemBottomBtn").addEventListener("click",()=>openItemDialog());
   content.querySelectorAll("[data-edit-id]").forEach(btn=>btn.addEventListener("click",()=>openItemDialog(items.find(i=>i.id===btn.dataset.editId))));
   content.querySelectorAll("[data-delete-id]").forEach(btn=>btn.addEventListener("click",()=>deleteItem(btn.dataset.deleteId)));
 }
@@ -1272,8 +1304,17 @@ function openShopManageDialog() {
 function openItemDialog(item=null) {
   if (!currentShopId) { toast("Add a shop first."); return; }
   const editing=Boolean(item);
-  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Enter <b>500k</b>, <b>1.2m</b>, or a full number. A blank price is saved as <b>?</b>.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy from shop · what you pay</label><input id="buyPrice" maxlength="40" placeholder="e.g. 500k or ? if not sold here" value="${escapeHtml(fmtPriceInput(item?.buyPrice))}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell to shop · what they pay you</label><input id="sellPrice" maxlength="40" placeholder="e.g. 500k or ? if they don’t buy it" value="${escapeHtml(fmtPriceInput(item?.sellPrice))}"></div></div><div class="field"><label for="itemIcon">Item icon</label><div class="emoji-input-row"><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈ or type/paste an emoji"><button type="button" class="secondary emoji-toggle" id="itemEmojiToggle" aria-expanded="false" aria-controls="itemEmojiPicker"><span class="emoji-toggle-preview" id="itemEmojiPreview">${escapeHtml(item?.icon||"◈")}</span> Choose emoji</button></div><div id="itemEmojiPicker" class="emoji-picker-panel hidden"><div class="emoji-picker-toolbar"><strong>Pick an emoji</strong><input id="itemEmojiSearch" type="search" placeholder="Search: pickaxe, sword, gem…" aria-label="Search emojis"></div><div id="itemEmojiCategories" class="emoji-picker-categories" aria-label="Emoji categories"></div><div id="itemEmojiGrid" class="emoji-grid" role="group" aria-label="Available emojis"></div><span class="emoji-picker-hint">Click an emoji to use it. You can also type or paste your own into the icon field.</span></div></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
+  openModal(editing?"EDIT ITEM":"NEW ITEM", `<h2 id="modalTitle">${editing?"Update item":"Add an item"}</h2><p>Use prices like <b>500k</b>, <b>1.2m</b>, or <b>?</b>.</p><form id="itemForm"><div class="field"><label for="itemName">Item name *</label><input id="itemName" maxlength="80" required placeholder="e.g. Crystal Pickaxe" value="${escapeHtml(item?.name||"")}"></div><div class="row" style="align-items:flex-start"><div class="field" style="flex:1"><label for="buyPrice">Buy from shop · what you pay</label><input id="buyPrice" maxlength="40" placeholder="500k or ?" value="${escapeHtml(fmtPriceInput(item?.buyPrice))}"></div><div class="field" style="flex:1"><label for="sellPrice">Sell to shop · what they pay you</label><input id="sellPrice" maxlength="40" placeholder="500k or ?" value="${escapeHtml(fmtPriceInput(item?.sellPrice))}"></div></div><div class="quick-price-actions"><button type="button" data-price-shortcut="buy">Not sold here → Buy ?</button><button type="button" data-price-shortcut="sell">Shop won't buy → Sell ?</button><button type="button" data-price-shortcut="both">Both unavailable → ?</button></div><div class="field"><label for="itemIcon">Item icon</label><div class="emoji-input-row"><input id="itemIcon" maxlength="8" value="${escapeHtml(item?.icon||"◈")}" placeholder="◈ or type/paste an emoji"><button type="button" class="secondary emoji-toggle" id="itemEmojiToggle" aria-expanded="false" aria-controls="itemEmojiPicker"><span class="emoji-toggle-preview" id="itemEmojiPreview">${escapeHtml(item?.icon||"◈")}</span> Choose emoji</button></div><div class="quick-emoji-row" aria-label="Quick emoji choices">${[["⛏️","Pickaxe"],["⚔️","Sword"],["🧪","Potion"],["💎","Gem"],["🪙","Coin"],["🫙","Jar"],["🪲","Bug"],["🪄","Wand"],["🧿","Charm"],["🌿","Herb"],["🦴","Bone"],["🗝️","Key"],["🪵","Wood"],["🐉","Dragon"],["🧱","Block"],["💰","Money"]].map(([emoji,label])=>`<button type="button" class="quick-emoji-btn" data-quick-item-emoji="${emoji}" title="${label}" aria-label="Use ${label}">${emoji}</button>`).join("")}</div><div id="itemEmojiPicker" class="emoji-picker-panel hidden"><div class="emoji-picker-toolbar"><strong>Pick an emoji</strong><input id="itemEmojiSearch" type="search" placeholder="Search: pickaxe, sword, gem…" aria-label="Search emojis"></div><div id="itemEmojiCategories" class="emoji-picker-categories" aria-label="Emoji categories"></div><div id="itemEmojiGrid" class="emoji-grid" role="group" aria-label="Available emojis"></div><span class="emoji-picker-hint">Click an emoji to use it. You can also type or paste your own into the icon field.</span></div></div><div class="field"><label for="itemNotes">Notes (optional)</label><textarea id="itemNotes" maxlength="500" style="min-height:75px;font:inherit" placeholder="Stock limits, location, requirements…">${escapeHtml(item?.notes||"")}</textarea></div><div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Cancel</button><button type="submit" class="primary">${editing?"Save changes":"Add item"}</button></div></form>`);
   $("cancelModal").addEventListener("click",closeModal);
+  document.querySelectorAll("[data-price-shortcut]").forEach(button=>button.addEventListener("click",()=>{
+    const target=button.dataset.priceShortcut;
+    if(target==="buy"||target==="both")$("buyPrice").value="?";
+    if(target==="sell"||target==="both")$("sellPrice").value="?";
+    toast(target==="buy"?"Marked as not sold here.":target==="sell"?"Marked as shop doesn't buy it.":"Both prices marked unavailable.","good");
+  }));
+  document.querySelectorAll("[data-quick-item-emoji]").forEach(button=>button.addEventListener("click",()=>{
+    $("itemIcon").value=button.dataset.quickItemEmoji;$("itemEmojiPreview").textContent=button.dataset.quickItemEmoji;
+  }));
   bindItemEmojiPicker();
   $("itemForm").addEventListener("submit",event=>{event.preventDefault();const name=$("itemName").value.trim();if(!name)return;
     const data={shopId:currentShopId,name,buyPrice:normalizePriceInput($("buyPrice").value),sellPrice:normalizePriceInput($("sellPrice").value),icon:$("itemIcon").value.trim()||"◈",notes:$("itemNotes").value.trim(),updatedBy:nickname,updatedAt:serverTimestamp()};
@@ -1317,6 +1358,74 @@ async function shareInvite() {
       await copyText(invite, "Invite link copied.");
     });
   } catch (error) { toast(error.message, "bad"); }
+}
+function parseCsvRows(text) {
+  const rows=[];let row=[],field="",quoted=false;
+  for(let i=0;i<text.length;i++){
+    const char=text[i];
+    if(char==='"'){
+      if(quoted&&text[i+1]==='"'){field+='"';i++;}
+      else quoted=!quoted;
+    } else if(char===','&&!quoted){row.push(field);field="";}
+    else if((char==='\n'||char==='\r')&&!quoted){
+      if(char==='\r'&&text[i+1]==='\n')i++;
+      row.push(field);field="";
+      if(row.some(value=>String(value).trim()))rows.push(row);
+      row=[];
+    } else field+=char;
+  }
+  if(field.length||row.length){row.push(field);if(row.some(value=>String(value).trim()))rows.push(row);}
+  return rows;
+}
+function csvHeaderKey(value){return String(value||"").replace(/^\uFEFF/,"").trim().toLowerCase().replace(/[^a-z0-9]/g,"");}
+function findCsvColumn(headers, candidates){return headers.findIndex(header=>candidates.includes(csvHeaderKey(header)));}
+function cleanShopKey(value){return String(value||"").trim().toLocaleLowerCase().replace(/\s+/g," ");}
+async function importScannedCsv(file){
+  if(!db||!currentRoomId){toast("Join your room first.","bad");return;}
+  try{
+    const rows=parseCsvRows(await file.text());
+    if(rows.length<2)throw new Error("This CSV has no item rows.");
+    const headers=rows[0];
+    const col={shop:findCsvColumn(headers,["shop","shopname"]),owner:findCsvColumn(headers,["shopowner","owner","shopownersname"]),name:findCsvColumn(headers,["item","itemname","name"]),buy:findCsvColumn(headers,["buyfromshopyoupay","buyprice","buy","shopbuyprice"]),sell:findCsvColumn(headers,["selltoshopshoppaysyou","sellprice","sell","shopsellprice"]),icon:findCsvColumn(headers,["icon","emoji","itemicon"]),notes:findCsvColumn(headers,["notes","note","description"])};
+    if(col.name<0||col.buy<0||col.sell<0)throw new Error("Missing columns. Use the scanner's Loot Ledger CSV export.");
+    const dataRows=rows.slice(1).map(row=>({shop:col.shop>=0?String(row[col.shop]||"").trim():"",owner:col.owner>=0?String(row[col.owner]||"").trim():"",name:String(row[col.name]||"").trim(),buy:col.buy>=0?String(row[col.buy]||"").trim():"?",sell:col.sell>=0?String(row[col.sell]||"").trim():"?",icon:col.icon>=0?String(row[col.icon]||"").trim():"",notes:col.notes>=0?String(row[col.notes]||"").trim():""})).filter(row=>row.name);
+    if(!dataRows.length)throw new Error("No item names were found in the CSV.");
+    const shopByName=new Map(shops.map(shop=>[cleanShopKey(shop.name),shop]));
+    const requestedNames=[...new Set(dataRows.map(row=>row.shop).filter(Boolean))];
+    const missingNames=requestedNames.filter(name=>!shopByName.has(cleanShopKey(name)));
+    if(missingNames.length){
+      if(!confirm(`These shop names are not in your room:\n\n${missingNames.join("\n")}\n\nCreate them and import their items?`))return;
+      for(const name of missingNames){
+        const first=dataRows.find(row=>cleanShopKey(row.shop)===cleanShopKey(name));
+        const ref=doc(collection(db,"rooms",currentRoomId,"shops"));
+        await setDoc(ref,{name,ownerName:first?.owner||"",icon:"🏪",createdBy:nickname,updatedBy:nickname,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+        shopByName.set(cleanShopKey(name),{id:ref.id,name,ownerName:first?.owner||"",icon:"🏪"});
+      }
+    }
+    const localIndex=new Map(items.map(item=>[`${item.shopId}::${cleanShopKey(item.name)}`,item]));
+    let created=0,updated=0,writes=[];
+    for(const row of dataRows){
+      const shop= row.shop ? shopByName.get(cleanShopKey(row.shop)) : activeShop();
+      if(!shop)throw new Error(`No shop selected for item “${row.name}”. Add a Shop column or select a shop first.`);
+      const key=`${shop.id}::${cleanShopKey(row.name)}`;
+      const existing=localIndex.get(key);
+      const incomingBuy=normalizePriceInput(row.buy),incomingSell=normalizePriceInput(row.sell);
+      if(existing){
+        const goodPrice=value=>!isUnavailablePrice(value)&&Number.isFinite(priceNumber(value));
+        const nextBuy=goodPrice(incomingBuy)?incomingBuy:(existing.buyPrice||"?");
+        const nextSell=goodPrice(incomingSell)?incomingSell:(existing.sellPrice||"?");
+        const next={...existing,buyPrice:nextBuy,sellPrice:nextSell,icon:row.icon||existing.icon||"◈",notes:row.notes||existing.notes||"",updatedBy:nickname,updatedAt:serverTimestamp()};
+        writes.push(updateDoc(doc(db,"rooms",currentRoomId,"items",existing.id),{buyPrice:next.buyPrice,sellPrice:next.sellPrice,icon:next.icon,notes:next.notes,updatedBy:nickname,updatedAt:serverTimestamp()}));
+        localIndex.set(key,next);updated++;
+      }else{
+        const ref=doc(collection(db,"rooms",currentRoomId,"items"));
+        const next={id:ref.id,shopId:shop.id,name:row.name,buyPrice:incomingBuy,sellPrice:incomingSell,icon:row.icon||"◈",notes:row.notes||"",createdBy:nickname,updatedBy:nickname,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+        writes.push(setDoc(ref,{...next}));localIndex.set(key,next);created++;
+      }
+    }
+    await Promise.all(writes);
+    toast(`Imported ${dataRows.length} item${dataRows.length===1?"":"s"}: ${created} added, ${updated} updated.`,"good");
+  }catch(error){toast("CSV import failed: "+(error?.message||String(error)),"bad");}
 }
 function exportCSV() {
   const shop=activeShop();if(!shop){toast("Choose a shop first.");return;}
@@ -1455,6 +1564,8 @@ $("backSetupBtn").addEventListener("click", async () => {
 });
 $("sidebarAddShop").addEventListener("click",openAddShopDialog);$("sidebarNewShop").addEventListener("click",openAddShopDialog);$("addShopMainBtn").addEventListener("click",openAddShopDialog);
 $("addItemBtn").addEventListener("click",()=>openItemDialog());$("manageShopBtn").addEventListener("click",openShopManageDialog);$("searchInput").addEventListener("input",renderInventory);$("clearSearchBtn").addEventListener("click",()=>{$("searchInput").value="";renderInventory();});
+$("importCsvBtn").addEventListener("click",()=>$("importCsvInput").click());
+$("importCsvInput").addEventListener("change",async event=>{const file=event.target.files?.[0];if(file)await importScannedCsv(file);event.target.value="";});
 $("marketSearchInput").addEventListener("input",()=>{marketSuggestionIndex=-1;renderMarketFinder();renderMarketSuggestions(true);});
 $("marketSearchInput").addEventListener("focus",()=>renderMarketSuggestions(true));
 $("marketSearchInput").addEventListener("keydown",event=>{
